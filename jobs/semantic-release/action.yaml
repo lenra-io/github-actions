@@ -1,0 +1,82 @@
+name: semantic-release
+description: Release a new version of the project using conventional commits
+author: Lenra-io
+branding:
+  color: orange
+  icon: tag
+
+inputs:
+  node-version:
+    description: The version of node to use
+    required: false
+    default: '18'
+  dry-run:
+    description: Whether to publish the release or not
+    required: false
+    default: 'false'
+  release-branches:
+    description: The branches on which releases should happen, comma separated name of branches
+    required: false
+    default: 'main'
+  prerelease-branches:
+    description: The branches on which prereleases should happen, comma separated name of branches
+    required: false
+    default: 'rc,beta,alpha'
+  assets:
+    description: 'The assets to upload to the release, comma separated list of `{"path": "<glob>", "name": "<name>"}` objects'
+    required: false
+    default: ''
+
+outputs:
+  release-published:
+    description: "Whether a release was published or not"
+    value: ${{ steps.semantic-release.outputs.new-release-published }}
+  release-version:
+    description: "The next version discovered by conventional commits"
+    value: ${{ steps.semantic-release.outputs.new-release-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "${{ inputs.node-version }}"
+        cache: 'npm'
+    - name: Generate `.releaserc.yml` config file
+      shell: bash
+      run: |
+        echo "---" > .releaserc.yml
+        echo "branches:" >> .releaserc.yml
+        echo '  - "+([0-9])?(.{+([0-9]),x}).x"' >> .releaserc.yml
+
+        release_branches="${{ inputs.release-branches }}"
+        for branch in $(echo $release_branches | tr "," "\n"); do
+          echo "  - $branch" >> .releaserc.yml
+        done
+
+        prerelease_branches="${{ inputs.prerelease-branches }}"
+        for branch in $(echo $prerelease_branches | tr "," "\n"); do
+          echo "  - $branch" >> .releaserc.yml
+        done
+        
+        echo "plugins:" >> .releaserc.yml
+        echo "  - - '@semantic-release/commit-analyzer'" >> .releaserc.yml
+        echo "    - preset: conventionalcommits" >> .releaserc.yml
+        echo "  - - '@semantic-release/release-notes-generator'" >> .releaserc.yml
+        echo "    - preset: conventionalcommits" >> .releaserc.yml
+        echo "  - - '@semantic-release/github'" >> .releaserc.yml
+        # add assets to the github release
+        if [ -n "${{ inputs.assets }}" ]; then
+          echo "    - assets:" >> .releaserc.yml
+          for asset in $(echo ${{ inputs.assets }} | tr "," "\n"); do
+            echo "      - $asset" >> .releaserc.yml
+          done
+        fi
+        # add the export data plugin to allow to get the version published by semantic-release
+        echo "  - - 'semantic-release-export-data'" >> .releaserc.yml
+    - name: Run semantic-release
+      id: semantic-release
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx -p conventional-changelog-conventionalcommits@5 -p @semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
