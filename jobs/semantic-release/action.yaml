@@ -56,7 +56,8 @@ runs:
 
         prerelease_branches="${{ inputs.prerelease-branches }}"
         for branch in $(echo $prerelease_branches | tr "," "\n"); do
-          echo "  - $branch" >> .releaserc.yml
+          echo "  - name: $branch" >> .releaserc.yml
+          echo "    prerelease: true" >> .releaserc.yml
         done
         
         echo "plugins:" >> .releaserc.yml
