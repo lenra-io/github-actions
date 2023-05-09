@@ -1,58 +1,39 @@
-# Docker Buildx Action
+# Check if PR is in WIP state
 
 ## Usage
 
-Here a full usable example to build and push a docker image : 
+Here a full usable example to use it : 
 
 ```yaml
 name: Build docker
 
 on:
-  workflow_call:
-    inputs:
-      # pass in environment through manual trigger, if not passed in, default to 'dev'
-      env:
-        required: true
-        type: string
-        default: 'dev'
-      # working-directory is added to accommodate monorepo.  For multi repo, defaults to '.', current directory
-      working-directory:
-        required: false
-        type: string
-        default: '.'
+  push:
+  pull-request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
 
 jobs:
+  pr-is-wip:
+    name: PR is WIP
+    runs-on: ubuntu-latest
+    steps:
+      - id: pr-is-wip
+        name: PR is WIP
+        uses: https://github.com/lenra-io/github-actions/jobs/check-pr-is-wip@main
+        secrets:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build
+    if: needs.pr-is-wip.outputs.must-run == 'true'
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
-
-    # important to specify the environment here so workflow knows where to deploy your artifact to.
-    # default environment to "dev" if it is not passed in through workflow_dispatch manual trigger
-    environment: ${{ inputs.env || 'dev' }}
-
-    outputs:
-      release-published: ${{ steps.get-version.outputs.release-published }}
-      release-version: ${{ steps.get-version.outputs.release-version }}
-
+    needs: [ pr-is-wip ]
     steps:
       - name: Checkout Code
         uses: actions/checkout@3
-
-      - id: get-version
-        name: release
-        uses: https://github.com/lenra-io/github-actions/jobs/semantic-release@main
-        with:
-          dry-run: 'true'
-
-      - id: get-version
-        name: release
-        uses: https://github.com/lenra-io/github-actions/jobs/docker-buildx@main
-        with:
-          tags: user/app:${{ steps.get-version.outputs.release-version }}
-
+      - [...]
 ```
