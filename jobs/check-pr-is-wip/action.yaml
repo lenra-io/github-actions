@@ -1,0 +1,35 @@
+name: check-pr-is-wip
+description: Check if PR is WIP to know if we have to skip the build for this commit
+author: Lenra-io
+branding:
+  color: blue
+  icon: cloud
+
+outputs:
+  is-wip: 
+    description: "Whether the PR is WIP or not"
+    value: ${{ steps.pr-is-wip.outputs.is-wip }}
+  must-run:
+    description: "Whether the build must run or not"
+    value: ${{ steps.set-outputs.outputs.must-run }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: pr-is-wip
+      name: Check if PR is WIP
+      # TODO: remove the shiipou/pr-is-wip-action to use a composite script using actions/github-script to call the API (more maintainable for us)
+      uses: shiipou/pr-is-wip-action@v1.2.0
+      with:
+        continueIfNonPR: 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - id: set-outputs
+      name: Set outputs
+      uses: actions/github-script@v5
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const isWip = "${{ steps.pr-is-wip.outputs.is-wip }}" == 'true'
+          const mustRun = github.context.event_name == 'push' || (github.context.event_name == 'pull_request' && isWip)
+          core.setOutput('must-run', mustRun)
