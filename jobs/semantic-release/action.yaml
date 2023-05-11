@@ -67,6 +67,7 @@ runs:
         echo "  - - '@semantic-release/release-notes-generator'" >> .releaserc.yml
         echo "    - preset: conventionalcommits" >> .releaserc.yml
         echo "  - - '@semantic-release/github'" >> .releaserc.yml
+        echo "    - successComment: false" >> .releaserc.yml
         # add assets to the github release
         if [ -n "${{ inputs.assets }}" ]; then
           echo "    - assets:" >> .releaserc.yml
