@@ -44,6 +44,7 @@ runs:
         cache: 'npm'
     - name: Generate `.releaserc.yml` config file
       shell: bash
+      if: ! -e '${{ github.workspace }}/.releaserc.yml'
       run: |
         echo "---" > .releaserc.yml
         echo "branches:" >> .releaserc.yml
@@ -59,7 +60,7 @@ runs:
           echo "  - name: $branch" >> .releaserc.yml
           echo "    prerelease: true" >> .releaserc.yml
         done
-        
+
         echo "plugins:" >> .releaserc.yml
         echo "  - - '@semantic-release/commit-analyzer'" >> .releaserc.yml
         echo "    - preset: conventionalcommits" >> .releaserc.yml
