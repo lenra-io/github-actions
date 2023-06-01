@@ -26,6 +26,10 @@ inputs:
     description: 'The assets to upload to the release, comma separated list of `{"path": "<glob>", "name": "<name>"}` objects'
     required: false
     default: ''
+  send-pr-release-notification:
+    description: To send or not the "Released" comment when the PR is include in a (pre)released tag
+    required: false
+    default: 'false'
 
 outputs:
   release-published:
@@ -70,7 +74,7 @@ runs:
         echo "  - - '@semantic-release/release-notes-generator'" >> .releaserc.yml
         echo "    - preset: conventionalcommits" >> .releaserc.yml
         echo "  - - '@semantic-release/github'" >> .releaserc.yml
-        echo "    - successComment: false" >> .releaserc.yml
+        echo "    - successComment: ${{ inputs.send-pr-release-notification }}" >> .releaserc.yml
         # add assets to the github release
         if [ -n "${{ inputs.assets }}" ]; then
           echo "    - assets:" >> .releaserc.yml

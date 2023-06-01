@@ -13,6 +13,11 @@ on:
         description: The branches on which prereleases should happen, comma separated name of branches
         required: false
         default: 'rc,beta,alpha'
+      send-pr-release-notification:
+        type: string
+        description: To send or not the "Released" comment when the PR is include in a (pre)released tag
+        required: false
+        default: 'false'
     secrets:
       token:
         description: The token that'll authentificate the user to the GitHub API to create new tags
@@ -35,3 +40,4 @@ jobs:
         with:
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
+          send-pr-release-notification: ${{ inputs.send-pr-release-notification }}
