@@ -1,0 +1,23 @@
+name: Release Docker
+
+on:
+  push:
+    branches:
+      - main
+      - rc
+      - beta
+      - alpha
+      - "*.x"
+
+jobs:
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3
+
+      - name: Release
+        uses: https://github.com/lenra-io/github-actions/jobs/semantic-release@main
