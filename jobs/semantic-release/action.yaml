@@ -83,4 +83,4 @@ runs:
     - name: Run semantic-release
       id: semantic-release
       shell: bash
-      run: npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
+      run: npx --force -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
