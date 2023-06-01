@@ -41,7 +41,6 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: "${{ inputs.node-version }}"
-        cache: 'npm'
     - name: Check if file exists
       id: file_releaserc
       shell: bash
