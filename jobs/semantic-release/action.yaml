@@ -9,7 +9,7 @@ inputs:
   node-version:
     description: The version of node to use
     required: false
-    default: '18'
+    default: '16'
   dry-run:
     description: Whether to publish the release or not
     required: false
@@ -83,4 +83,4 @@ runs:
     - name: Run semantic-release
       id: semantic-release
       shell: bash
-      run: npx -p conventional-changelog-conventionalcommits@8 -p semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
+      run: npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
