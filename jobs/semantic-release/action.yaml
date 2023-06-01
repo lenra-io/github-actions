@@ -45,7 +45,7 @@ runs:
     - name: Check if file exists
       id: file_releaserc
       shell: bash
-      run: echo "exist=$(test -e ${GITHUB_WORKSPACE}/.releaserc.yml && echo true || echo false)"
+      run: echo "exist=$(test -e ${GITHUB_WORKSPACE}/.releaserc.yml && echo true || echo false)" >> $GITHUB_OUTPUT
     - name: Generate `.releaserc.yml` config file
       shell: bash
       if: ${{ steps.file_releaserc.outputs.exist == 'false' }}
