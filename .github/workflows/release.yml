@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@3
+        uses: actions/checkout@v3
 
       - name: Release
         uses: lenra-io/github-actions/jobs/semantic-release@2-task-add-semantic-release
