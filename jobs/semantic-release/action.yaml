@@ -42,9 +42,13 @@ runs:
       with:
         node-version: "${{ inputs.node-version }}"
         cache: 'npm'
+    - name: Check if file exists
+      id: file_releaserc
+      shell: bash
+      run: echo "exist=$(test -e ${GITHUB_WORKSPACE}/.releaserc.yml && echo true || echo false)"
     - name: Generate `.releaserc.yml` config file
       shell: bash
-      if: ${{ ! -e '${{ github.workspace }}/.releaserc.yml' }}
+      if: ${{ steps.file_releaserc.outputs.exist == 'false' }}
       run: |
         echo "---" > .releaserc.yml
         echo "branches:" >> .releaserc.yml
