@@ -20,4 +20,4 @@ jobs:
         uses: actions/checkout@3
 
       - name: Release
-        uses: https://github.com/lenra-io/github-actions/jobs/semantic-release@main
+        uses: https://github.com/lenra-io/github-actions/jobs/semantic-release@2-task-add-semantic-release
