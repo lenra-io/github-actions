@@ -44,7 +44,7 @@ runs:
         cache: 'npm'
     - name: Generate `.releaserc.yml` config file
       shell: bash
-      if: ! -e '${{ github.workspace }}/.releaserc.yml'
+      if: ${{ ! -e '${{ github.workspace }}/.releaserc.yml' }}
       run: |
         echo "---" > .releaserc.yml
         echo "branches:" >> .releaserc.yml
