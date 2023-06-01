@@ -37,7 +37,6 @@ outputs:
 
 runs:
   using: "composite"
-  if: ${{ contains(format('{0},{1}', inputs.release-branches, inputs.prerelease-branches), github.ref_name) }}
   steps:
     - uses: actions/setup-node@v3
       with:
@@ -81,6 +80,4 @@ runs:
     - name: Run semantic-release
       id: semantic-release
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npx -p conventional-changelog-conventionalcommits@5 -p @semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
