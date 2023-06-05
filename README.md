@@ -3,8 +3,13 @@ GitHub Repository to reduce workflows for all our repository
 
 ## Table of contents
 
-???
-
+- [github-actions](#github-actions)
+  - [Table of contents](#table-of-contents)
+  - [Workflows](#workflows)
+    - [Release workflows](#release-workflows)
+      - [Semantic-Release](#semantic-release)
+  - [Jobs](#jobs)
+    - [Release Jobs](#release-jobs)
 
 ## Workflows
 
