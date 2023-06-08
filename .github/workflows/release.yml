@@ -1,0 +1,43 @@
+name: Release Docker
+
+on:
+  workflow_call:
+    inputs:
+      release-branches:
+        type: string
+        description: The branches on which releases should happen, comma separated name of branches
+        required: false
+        default: 'main'
+      prerelease-branches:
+        type: string
+        description: The branches on which prereleases should happen, comma separated name of branches
+        required: false
+        default: 'rc,beta,alpha'
+      send-pr-release-notification:
+        type: string
+        description: To send or not the "Released" comment when the PR is include in a (pre)released tag
+        required: false
+        default: 'false'
+    secrets:
+      token:
+        description: The token that'll authentificate the user to the GitHub API to create new tags
+        required: true
+
+jobs:
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Release
+        uses: lenra-io/github-actions/jobs/semantic-release@2-task-add-semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+        with:
+          release-branches: ${{ inputs.release-branches }}
+          prerelease-branches: ${{ inputs.prerelease-branches }}
+          send-pr-release-notification: ${{ inputs.send-pr-release-notification }}
