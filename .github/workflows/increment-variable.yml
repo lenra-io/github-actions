@@ -1,4 +1,4 @@
-name: Deploy Flutter
+name: Increment variable
 
 on:
   workflow_call:

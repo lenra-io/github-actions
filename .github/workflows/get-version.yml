@@ -1,4 +1,4 @@
-name: Deploy Flutter
+name: Get version
 
 on:
   workflow_call:
