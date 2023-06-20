@@ -139,3 +139,74 @@ jobs:
           prerelease-branches: ${{ inputs.prerelease-branches }}
           assets: ${{ steps.list-assets.outputs.result }}
           send-pr-release-notification: ${{ inputs.send-pr-release-notification }}
+
+      - name: Create service_account.json
+        id: createServiceAccount
+        run: echo '${{ secrets.serviceAccountJsonPlainText }}' > service_account.json
+
+      - name: Get android asset
+        id: get-android-asset
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const files = "${{ steps.list-assets.outputs.result }}".split('\n')
+            const androidAABFiles = files.filter(file => file.includes('aab'))
+            if (androidAABFiles.length > 0) {
+              return androidAABFiles[0]
+            }
+            const androidAPKFiles = files.filter(file => file.includes('apk'))
+            if (androidAPKFiles.length > 0) {
+              return androidAPKFiles[0]
+            }
+            return ''
+
+      - id: get-track-to-release
+        name: Get track to release
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const releaseTrack = 'production'
+            const releaseChannels = "${{ inputs.release-branches }}".split(',')
+            const currentChannel = "${{ github.ref_name }}"
+            if (releaseChannels.includes(currentChannel)) {
+              return releaseTrack
+            }
+
+            const prereleaseTracks = ['beta', 'alpha', 'internal']
+            const prereleaseChannels = "${{ inputs.prerelease-branches }}".split(',')
+            
+            if (prereleaseChannels.includes(currentChannel)) {
+              const index = prereleaseChannels.indexOf(currentChannel)
+              if (index >= prereleaseTracks.length) {
+                return prereleaseTracks.pop()
+              }
+              return prereleaseTracks[index]
+            }
+            return prereleaseTracks.pop()
+      
+      - id: get-changelogs
+        name: Get ChangeLogs
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const version = "${{ steps.semantic-release.outputs.release-version }}"
+            const release = github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: version
+            })
+            const changelogs = release.data.body
+            return changelogs
+            
+      - name: Deploy to Play Store (BETA)
+        id: deploy
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: service_account.json
+          packageName: fr.lenra.io
+          releaseFile: ${{ steps.get-android-asset.outputs.result }}
+          track: ${{ steps.get-track-to-release.outputs.result }}
+          whatsNewDirectory: ${{ steps.get-changelogs.outputs.result }}
