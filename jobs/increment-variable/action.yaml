@@ -13,7 +13,9 @@ inputs:
     description: "Whether the build-number will be increment or not"
     required: false
     default: 'false'
-
+  github-token:
+    description: "The github token to use to update the build number"
+    required: true
 outputs:
   build-number:
     description: "The next build number to build"
@@ -26,7 +28,7 @@ runs:
       name: Get build number
       uses: actions/github-script@v6
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ inputs.GITHUB_TOKEN }}
         result-encoding: string
         script: |
           const var_name = 'BUILD_NUMBER'

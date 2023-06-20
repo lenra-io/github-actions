@@ -37,3 +37,4 @@ jobs:
         with:
           variable-name: ${{ github.event.inputs.variable-name }}
           dry-run: ${{ github.event.inputs.dry-run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
