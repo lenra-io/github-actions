@@ -1,5 +1,5 @@
-name: semantic-release
-description: Release a new version of the project using conventional commits
+name: increment-variable
+description: Get the next build number for the current build
 author: Lenra-io
 branding:
   color: orange
@@ -26,6 +26,7 @@ runs:
       name: Get build number
       uses: actions/github-script@v6
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         result-encoding: string
         script: |
           const var_name = 'BUILD_NUMBER'
