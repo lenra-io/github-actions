@@ -29,13 +29,15 @@ runs:
         script: |
           const var_name = 'BUILD_NUMBER'
           // Get current build number from github variables
+          core.debug(`var_name=${var_name}`);
           let build_number = github.rest.actions.getRepoVariable({
             owner: context.repo.owner,
             repo: context.repo.repo,
             name: var_name
           })
-
+          core.debug(`old_build_number=${build_number}`);
           if (!buildNumber) {
+            core.debug(`build_number didn't exist, creating it to 1`);
             buildNumber=1
             if (inputs.dry-run == 'false') {
               github.rest.actions.createRepoVariable({
@@ -45,10 +47,13 @@ runs:
                 value: buildNumber
               });
             }
+            core.debug(`build_number=${build_number}`);
             return buildNumber
           }
 
           buildNumber = parseInt(buildNumber) + 1
+
+          core.debug(`build_number=${build_number}`);
 
           if (inputs.dry-run == 'false') {
             github.rest.actions.updateRepoVariable({
