@@ -15,11 +15,12 @@ on:
     secrets:
       GITHUB_TOKEN:
         description: 'Used for updating the variable'
-        required: true
+        required: false
     outputs:
       version:
         description: The version that was released
         value: ${{ jobs.increment.outputs.build-number }}
+
 permissions:
   actions: write
 
@@ -36,4 +37,3 @@ jobs:
         with:
           variable-name: ${{ github.event.inputs.variable-name }}
           dry-run: ${{ github.event.inputs.dry-run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
