@@ -19,7 +19,6 @@ on:
 
 jobs:
   increment:
-    name: Increment
     runs-on: ubuntu-latest
     outputs:
       build-number: ${{ steps.get-build-number.outputs.build-number }}

@@ -46,7 +46,6 @@ on:
 
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts

@@ -19,7 +19,6 @@ on:
         value: ${{ jobs.get-version.outputs.version }}
 jobs:
   get-version:
-    name: Get Version
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.release-version }}
