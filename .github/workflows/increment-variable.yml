@@ -17,12 +17,9 @@ on:
         description: The version that was released
         value: ${{ jobs.increment.outputs.build-number }}
 
-permissions:
-  actions: write
-
 jobs:
   increment:
-    name: Increment variable
+    name: Increment
     runs-on: ubuntu-latest
     outputs:
       build-number: ${{ steps.get-build-number.outputs.build-number }}
