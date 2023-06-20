@@ -6,11 +6,18 @@ branding:
   icon: package
 
 inputs:
-  targets:
-    description: 'JSON representation of the targets to build and their respective artifacts to upload'
+  version:
+    description: 'The version of the app to build'
     required: true
-  platforms:
-    description: 'The platforms to use to build for each target'
+  build:
+    description: 'The build number of the app to build'
+    required: false
+    default: ''
+  targets:
+    description: 'Comma separated list of targets to build'
+    required: true
+  platform:
+    description: 'The platform to use to build targets'
     required: true
   flutter-extra-args:
     description: 'Extra arguments to pass to the flutter build command'
@@ -53,22 +60,6 @@ runs:
       cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
       cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:" # optional, change this to specify the cache path
 
-  - name: check-yq-path
-    continue-on-error: true
-    uses: actions/github-script@v6
-    with:
-      result-encoding: string
-      script: |
-        const yqPath: string = await io.which('yq', true)
-        return yqPath
-
-  - name: Install yq
-    id: setup-yq
-    if: steps.check-yq-path.outputs.result == ''
-    uses: shiipou/setup-yq-action@v2.2.0
-    with:
-      version: v4.34.1
-
   - name: Install Dependencies (windows)
     shell: pwsh
     if: ${{ runner.os == 'Windows' }}
@@ -92,8 +83,29 @@ runs:
     run: |
       flutter config --enable-macos-desktop
 
+  - name: Update version
+    uses: actions/github-script@v6
+    with:
+      script: |
+        // Update pubspec.yaml inplace
+        const fs = require('fs')
+        const path = require('path')
+        const pubspecPath = path.join(process.env.GITHUB_WORKSPACE, 'pubspec.yaml')
+        // edit version and build number
+        const pubspec = fs.readFileSync(pubspecPath, 'utf8')
+        const version = '${{ inputs.version }}'
+        const build = '${{ inputs.build }}'
+        let version_string = ''
+        if (build.length > 0) {
+          version_string = `${version}+${build}`
+        } else {
+          version_string = `${version}`
+        }
+        const newPubspec = pubspec.replace(/version: .*/, `version: ${version_string}`)
+        fs.writeFileSync(pubspecPath, newPubspec)
+
   - name: Build
     shell: sh
     run: |
       flutter pub global activate flutter_distributor
-      flutter_distributor package ${{ inputs.flutter-extra-args }} --platform ${{ inputs.platforms }} --targets ${{ inputs.targets }}
+      flutter_distributor package ${{ inputs.flutter-extra-args }} --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}

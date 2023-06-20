@@ -3,11 +3,10 @@ name: Deploy Flutter
 on:
   workflow_call:
     inputs:
-      flutter-version:
+      package-name:
         type: string
-        description: 'Version of Flutter to use'
+        description: 'Name of the package to deploy'
         required: true
-        default: '3.x.x'
       release-branches:
         type: string
         description: The branches on which releases should happen, comma separated name of branches
@@ -23,6 +22,11 @@ on:
         description: To send or not the "Released" comment when the PR is include in a (pre)released tag
         required: false
         default: 'false'
+      flutter-version:
+          type: string
+          description: 'Version of Flutter to use'
+          required: true
+          default: '3.x.x'
     secrets:
       uploadKeyStore:
         description: The keystore file to sign the app
@@ -37,6 +41,8 @@ on:
         description: The token that'll authentificate the user to the Google Playstore API to create new release
         required: true
       
+permissions:
+  actions: write
 
 jobs:
 
@@ -95,12 +101,62 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - id: get-version
+        name: Get version
+        uses: ./jobs/semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release-branches: ${{ inputs.release-branches }}
+          prerelease-branches: ${{ inputs.prerelease-branches }}
+          dry-run: true
+
+      - id: get-build-number
+        name: Get build number
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const var_name = 'BUILD_NUMBER'
+            // Get current build number from github variables
+            let build_number = github.rest.actions.getRepoVariable({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: var_name
+            })
+
+            if (!buildNumber) {
+              buildNumber=1
+              github.rest.actions.createRepoVariable({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: var_name,
+                value: buildNumber,
+              });
+
+              return buildNumber
+            }
+
+            buildNumber = parseInt(buildNumber) + 1
+
+            github.rest.actions.updateRepoVariable({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: var_name,
+              value: buildNumber,
+            });
+
+            return buildNumber
       
       - name: Build
         if: ${{ steps.get-version.outputs.release-published }}
         uses: ./jobs/build-flutter
         with:
-          target: android
+          version: ${{ steps.get-version.outputs.version }}
+          build: ${{ steps.get-build-number.outputs.result }}
+          platforms: ${{ matrix.platform }}
+          targets: ${{ matrix.targets }}
       
       - name: Upload Artifacts
         if: ${{ steps.get-version.outputs.release-published }}
@@ -206,7 +262,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: service_account.json
-          packageName: fr.lenra.io
+          packageName: ${{ inputs.package-name }}
           releaseFile: ${{ steps.get-android-asset.outputs.result }}
           track: ${{ steps.get-track-to-release.outputs.result }}
           whatsNewDirectory: ${{ steps.get-changelogs.outputs.result }}
