@@ -12,10 +12,6 @@ on:
         description: 'If true, the variable will not be updated'
         required: false
         default: false
-    secrets:
-      GITHUB_TOKEN:
-        description: 'Used for updating the variable'
-        required: false
     outputs:
       version:
         description: The version that was released
