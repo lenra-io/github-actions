@@ -51,7 +51,7 @@ jobs:
       
       - id: semantic-release
         name: Release
-        uses: ./.github/actions/semantic-release
+        uses: lenra-io/github-actions/jobs/semantic-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -138,7 +138,7 @@ jobs:
       
       - name: Build
         if: ${{ needs.get-version.outputs.version }}
-        uses: ./.github/actions/build-flutter
+        uses: lenra-io/github-actions/jobs/build-flutter@8-task-publish-to-the-playstore
         with:
           version: ${{ needs.get-version.outputs.version }}
           build: ${{ steps.get-build-number.outputs.result }}
