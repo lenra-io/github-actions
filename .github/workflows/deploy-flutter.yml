@@ -41,9 +41,6 @@ on:
         description: The token that'll authentificate the user to the Google Playstore API to create new release
         required: true
       
-permissions:
-  actions: write
-
 jobs:
 
   get-version:
@@ -68,6 +65,7 @@ jobs:
     
   build:
     name: Build ${{ matrix.platform }}
+    needs: get-version
     strategy:
       matrix:
         platform: [ web, windows, linux, macos, android, ios ]
@@ -101,16 +99,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - id: get-version
-        name: Get version
-        uses: ./jobs/semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release-branches: ${{ inputs.release-branches }}
-          prerelease-branches: ${{ inputs.prerelease-branches }}
-          dry-run: true
 
       - id: get-build-number
         name: Get build number
@@ -150,16 +138,16 @@ jobs:
             return buildNumber
       
       - name: Build
-        if: ${{ steps.get-version.outputs.release-published }}
-        uses: ./jobs/build-flutter
+        if: ${{ needs.get-version.outputs.version }}
+        uses: lenra-io/github-actions/jobs/build-flutter@8-task-publish-to-the-playstore
         with:
-          version: ${{ steps.get-version.outputs.version }}
+          version: ${{ needs.get-version.outputs.version }}
           build: ${{ steps.get-build-number.outputs.result }}
-          platforms: ${{ matrix.platform }}
+          platform: ${{ matrix.platform }}
           targets: ${{ matrix.targets }}
       
       - name: Upload Artifacts
-        if: ${{ steps.get-version.outputs.release-published }}
+        if: ${{ needs.get-version.outputs.version }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}
@@ -187,7 +175,7 @@ jobs:
 
       - id: semantic-release
         name: Release
-        uses: ./jobs/semantic-release
+        uses: lenra-io/github-actions/jobs/semantic-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
