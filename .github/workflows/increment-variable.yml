@@ -17,6 +17,9 @@ on:
         description: The version that was released
         value: ${{ jobs.increment.outputs.build-number }}
 
+permissions:
+  actions: write
+
 jobs:
   increment:
     runs-on: ubuntu-latest
@@ -29,4 +32,4 @@ jobs:
         with:
           variable-name: ${{ github.event.inputs.variable-name }}
           dry-run: ${{ github.event.inputs.dry-run }}
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
