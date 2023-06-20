@@ -7,6 +7,14 @@ on:
         type: string
         description: 'Name of the package to deploy'
         required: true
+      version:
+        type: string
+        description: 'Version of the package to deploy'
+        required: true
+      build:
+        type: string
+        description: 'Build number of the package to deploy'
+        required: false
       release-branches:
         type: string
         description: The branches on which releases should happen, comma separated name of branches
@@ -22,11 +30,6 @@ on:
         description: To send or not the "Released" comment when the PR is include in a (pre)released tag
         required: false
         default: 'false'
-      flutter-version:
-        type: string
-        description: 'Version of Flutter to use'
-        required: false
-        default: '3.x.x'
     secrets:
       uploadKeyStore:
         description: The keystore file to sign the app
@@ -39,122 +42,11 @@ on:
         required: false
       serviceAccountJsonPlainText:
         description: The token that'll authentificate the user to the Google Playstore API to create new release
-        required: false
-      
+        required: true
+
 jobs:
-  get-version:
-    name: Get Version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      
-      - id: semantic-release
-        name: Release
-        uses: lenra-io/github-actions/jobs/semantic-release@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release-branches: ${{ inputs.release-branches }}
-          prerelease-branches: ${{ inputs.prerelease-branches }}
-          dry-run: true
-      
-    outputs:
-      version: ${{ steps.semantic-release.outputs.release-version }}
-    
-  build:
-    name: Build ${{ matrix.platform }}
-    needs: get-version
-    strategy:
-      matrix:
-        platform: [ web, windows, linux, macos, android, ios ]
-        include:
-          - platform: web
-            targets: zip
-            runner: ubuntu-latest
-            artifacts: dist/web/lenra*.zip
-          - platform: linux
-            targets: zip,deb,rpm,appimage
-            runner: ubuntu-latest
-            artifacts: dist/linux/lenra*.{zip,deb,rpm,AppImage}
-          - platform: android
-            targets: apk,aab
-            runner: ubuntu-latest
-            artifacts: dist/android/lenra*.{apk,aab}
-          - platform: windows
-            targets: zip,exe,msix
-            runner: windows-latest
-            artifacts: dist/windows/lenra*.{zip,exe,msix}
-          - platform: macos
-            targets: zip,dmg
-            runner: macos-latest
-            artifacts: dist/macos/lenra*.{zip,dmg}
-          - platform: ios
-            targets: ipa
-            runner: macos-latest
-            artifacts: dist/ios/lenra*.ipa
-    runs-on: ${{ matrix.runner }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - id: get-build-number
-        name: Get build number
-        uses: actions/github-script@v6
-        with:
-          result-encoding: string
-          script: |
-            const var_name = 'BUILD_NUMBER'
-            // Get current build number from github variables
-            let build_number = github.rest.actions.getRepoVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: var_name
-            })
-
-            if (!buildNumber) {
-              buildNumber=1
-              github.rest.actions.createRepoVariable({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: var_name,
-                value: buildNumber,
-              });
-
-              return buildNumber
-            }
-
-            buildNumber = parseInt(buildNumber) + 1
-
-            github.rest.actions.updateRepoVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: var_name,
-              value: buildNumber,
-            });
-
-            return buildNumber
-      
-      - name: Build
-        if: ${{ needs.get-version.outputs.version }}
-        uses: lenra-io/github-actions/jobs/build-flutter@8-task-publish-to-the-playstore
-        with:
-          version: ${{ needs.get-version.outputs.version }}
-          build: ${{ steps.get-build-number.outputs.result }}
-          platform: ${{ matrix.platform }}
-          targets: ${{ matrix.targets }}
-      
-      - name: Upload Artifacts
-        if: ${{ needs.get-version.outputs.version }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.platform }}
-          path: ${{ matrix.artifacts }}
-  
   release:
     name: Release
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts
@@ -174,7 +66,7 @@ jobs:
 
       - id: semantic-release
         name: Release
-        uses: ./.github/actions/semantic-release
+        uses: lenra-io/github-actions/jobs/semantic-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -244,7 +136,7 @@ jobs:
             const changelogs = release.data.body
             return changelogs
             
-      - name: Deploy to Play Store (BETA)
+      - name: Deploy to Play Store
         id: deploy
         uses: r0adkll/upload-google-play@v1
         with:

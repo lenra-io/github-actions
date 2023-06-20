@@ -1,0 +1,32 @@
+name: Deploy Flutter
+
+on:
+  workflow_call:
+    inputs:
+      variable-name:
+        type: string
+        description: 'Name of the variable value to increment'
+        required: true
+      dry-run: 
+        type: boolean
+        description: 'If true, the variable will not be updated'
+        required: false
+        default: false
+
+permissions:
+  actions: write
+
+jobs:
+  increment:
+    name: Increment variable
+    runs-on: ubuntu-latest
+    outputs:
+      build-number: ${{ steps.get-build-number.outputs.result }}
+    steps:
+      - id: get-build-number
+        name: Get build number
+        uses: lenra-io/github-actions/jobs/increment-variable@8-task-publish-to-the-playstore
+        with:
+          variable-name: ${{ github.event.inputs.variable-name }}
+          dry-run: ${{ github.event.inputs.dry-run }}
+          

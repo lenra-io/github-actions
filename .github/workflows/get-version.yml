@@ -1,0 +1,62 @@
+name: Deploy Flutter
+
+on:
+  workflow_call:
+    inputs:
+      package-name:
+        type: string
+        description: 'Name of the package to deploy'
+        required: true
+      release-branches:
+        type: string
+        description: The branches on which releases should happen, comma separated name of branches
+        required: false
+        default: 'main'
+      prerelease-branches:
+        type: string
+        description: The branches on which prereleases should happen, comma separated name of branches
+        required: false
+        default: 'rc,beta,alpha'
+      send-pr-release-notification:
+        type: string
+        description: To send or not the "Released" comment when the PR is include in a (pre)released tag
+        required: false
+        default: 'false'
+      flutter-version:
+        type: string
+        description: 'Version of Flutter to use'
+        required: false
+        default: '3.x.x'
+    secrets:
+      uploadKeyStore:
+        description: The keystore file to sign the app
+        required: false
+      uploadKeyName:
+        description: The name of the key to sign the app
+        required: false
+      uploadKeyPassword:
+        description: The password of the key to sign the app
+        required: false
+      serviceAccountJsonPlainText:
+        description: The token that'll authentificate the user to the Google Playstore API to create new release
+        required: false
+
+jobs:
+  get-version:
+    name: Get Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.release-version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - id: get-version
+        name: Release
+        uses: lenra-io/github-actions/jobs/semantic-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release-branches: ${{ inputs.release-branches }}
+          prerelease-branches: ${{ inputs.prerelease-branches }}
+          dry-run: true

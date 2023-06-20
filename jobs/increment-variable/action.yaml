@@ -1,0 +1,63 @@
+name: semantic-release
+description: Release a new version of the project using conventional commits
+author: Lenra-io
+branding:
+  color: orange
+  icon: tag
+
+inputs:
+  variable-name:
+    description: 'Name of the variable value to increment'
+    required: true
+  dry-run:
+    description: "Whether the build-number will be increment or not"
+    required: false
+    default: 'false'
+
+outputs:
+  build-number:
+    description: "The next build number to build"
+    value: ${{ steps.semantic-release.outputs.new-release-version }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: get-build-number
+      name: Get build number
+      uses: actions/github-script@v6
+      with:
+        result-encoding: string
+        script: |
+          const var_name = 'BUILD_NUMBER'
+          // Get current build number from github variables
+          let build_number = github.rest.actions.getRepoVariable({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            name: var_name
+          })
+
+          if (!buildNumber) {
+            buildNumber=1
+            if (inputs.dry-run == 'false') {
+              github.rest.actions.createRepoVariable({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: var_name,
+                value: buildNumber,
+              });
+            }
+            return buildNumber
+          }
+
+          buildNumber = parseInt(buildNumber) + 1
+
+          if (inputs.dry-run == 'false') {
+            github.rest.actions.updateRepoVariable({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: var_name,
+              value: buildNumber,
+            });
+          }
+
+          return buildNumber
