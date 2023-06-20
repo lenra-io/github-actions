@@ -12,10 +12,6 @@ on:
         description: 'If true, the variable will not be updated'
         required: false
         default: false
-    secrets:
-      GITHUB_TOKEN:
-        description: Token to access the repository
-        required: true
     outputs:
       version:
         description: The version that was released
@@ -36,4 +32,4 @@ jobs:
         with:
           variable-name: ${{ github.event.inputs.variable-name }}
           dry-run: ${{ github.event.inputs.dry-run }}
-          
+          github-token: ${{ secrets.GITHUB_TOKEN }}
