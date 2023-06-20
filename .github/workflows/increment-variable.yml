@@ -12,7 +12,14 @@ on:
         description: 'If true, the variable will not be updated'
         required: false
         default: false
-
+    secrets:
+      GITHUB_TOKEN:
+        description: Token to access the repository
+        required: true
+    outputs:
+      version:
+        description: The version that was released
+        value: ${{ jobs.increment.outputs.build-number }}
 permissions:
   actions: write
 
@@ -21,7 +28,7 @@ jobs:
     name: Increment variable
     runs-on: ubuntu-latest
     outputs:
-      build-number: ${{ steps.get-build-number.outputs.result }}
+      build-number: ${{ steps.get-build-number.outputs.build-number }}
     steps:
       - id: get-build-number
         name: Get build number

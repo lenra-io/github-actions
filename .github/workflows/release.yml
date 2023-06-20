@@ -18,6 +18,10 @@ on:
         description: To send or not the "Released" comment when the PR is include in a (pre)released tag
         required: false
         default: 'false'
+    secrets:
+      GITHUB_TOKEN:
+        description: A GitHub token to use to create releases
+        required: true
 
 jobs:
 

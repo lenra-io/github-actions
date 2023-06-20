@@ -21,6 +21,9 @@ on:
         required: false
         default: '3.x.x'
     secrets:
+      GITHUB_TOKEN:
+        description: Token to access the repository
+        required: true
       uploadKeyStore:
         description: The keystore file to sign the app
         required: false

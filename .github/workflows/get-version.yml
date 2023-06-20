@@ -13,7 +13,14 @@ on:
         description: The branches on which prereleases should happen, comma separated name of branches
         required: false
         default: 'rc,beta,alpha'
-
+    secrets:
+      GITHUB_TOKEN:
+        description: Token to access the repository
+        required: true
+    outputs:
+      version:
+        description: The version that was released
+        value: ${{ jobs.get-version.outputs.version }}
 jobs:
   get-version:
     name: Get Version
