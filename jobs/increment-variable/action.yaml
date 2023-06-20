@@ -43,7 +43,7 @@ runs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 name: var_name,
-                value: buildNumber,
+                value: buildNumber
               });
             }
             return buildNumber
@@ -56,7 +56,7 @@ runs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: var_name,
-              value: buildNumber,
+              value: buildNumber
             });
           }
 
