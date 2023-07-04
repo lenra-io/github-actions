@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  # This workflow will check if no files in `.github/workflows/` contains a line that start with `uses: shiipou/github-actions` and end with the branch from the PR.
+  # This workflow will check if no files in `.github/workflows/` contains a line that start with `uses: lenra-io/github-actions` and end with the branch from the PR.
   # If it does, it will mark a required check as failed and print all the files that contains the line.
   # It must ignore files in the list of ignored files.
   check:
@@ -23,7 +23,7 @@ jobs:
           if [ -n "$IGNORED_FILES" ]; then
             ignore_rules=' | grep -vE "($IGNORED_FILES)"'
           fi
-          files=$(grep -lE "uses: shiipou/github-actions/*@${branch}" .github/workflows/* ${ignore_rules}")
+          files=$(grep -lE "uses: lenra-io/github-actions/*@${branch}" .github/workflows/* ${ignore_rules}")
           if [ -n "$files" ]; then
             echo "The following files contains an action that uses the @${branch} version instead of @main:"
             echo "$files"

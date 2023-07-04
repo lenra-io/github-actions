@@ -1,6 +1,6 @@
 name: Flutter Build
 description: 'Build a Flutter app'
-author: shiipou
+author: lenra-io
 branding:
   color: blue
   icon: package
@@ -43,13 +43,13 @@ runs:
       result-encoding: string
       script: |
         return await io.which('flutter', true).catch(_=>'')
-  
+
   - name: Setup node
     if: ${{ runner.os == 'macOS' }}
     uses: actions/setup-node@v3
     with:
       node-version: 18
-  
+
   - name: Setup Flutter Environment
     if: steps.check-flutter-path.outputs.result == ''
     uses: subosito/flutter-action@v2.10.0
@@ -111,7 +111,7 @@ runs:
     run: |
       dart pub global activate flutter_distributor
       flutter_distributor.bat package ${{ inputs.flutter-extra-args }} --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
-      
+
   - name: Build (Linux/MacOS)
     shell: sh
     if: ${{ runner.os != 'Windows' }}

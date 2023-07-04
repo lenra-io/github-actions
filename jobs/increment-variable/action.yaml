@@ -1,6 +1,6 @@
 name: increment-variable
 description: Get the next build number for the current build
-author: shiipou
+author: lenra-io
 branding:
   color: orange
   icon: tag

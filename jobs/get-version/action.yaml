@@ -6,30 +6,38 @@ branding:
   icon: tag
 
 inputs:
+  node-version:
+    description: The version of node to use
+    required: false
+    default: '18'
+  dry-run:
+    description: Whether to publish the release or not
+    required: false
+    default: 'false'
+  release-branches:
+    description: The branches on which releases should happen, comma separated name of branches
+    required: false
+    default: 'main'
+  prerelease-branches:
+    description: The branches on which prereleases should happen, comma separated name of branches
+    required: false
+    default: 'rc,beta,alpha'
+  assets:
+    description: 'The assets to upload to the release, comma separated list of `{"path": "<glob>", "name": "<name>"}` objects'
+    required: false
+    default: ''
+  send-pr-release-notification:
+    description: To send or not the "Released" comment when the PR is include in a (pre)released tag
+    required: false
+    default: 'false'
   github-token:
     description: 'The GitHub token to use to authenticate to the GitHub API'
     required: true
-  release-branches:
-    type: string
-    description: The branches on which releases should happen, comma separated name of branches
-    required: false
-    default: '^(main)$'
-  prerelease-branches:
-    type: string
-    description: The branches on which prereleases should happen, comma separated name of branches
-    required: false
-    default: '^(rc|beta|alpha)$'
 
 outputs:
   version:
     description: "The next version discovered by conventional commits"
     value: ${{ steps.get-version.outputs.version }}
-  changelogs:
-    description: "The changelogs generated from conventional commits"
-    value: ${{ steps.get-version.outputs.changelogs }}
-  is-prerelease:
-    description: "Whether the next version is a prerelease or not"
-    value: ${{ steps.get-version.outputs.is-prerelease == 'true' }}
   will-release:
     description: "Whether the next version is a prerelease or not"
     value: ${{ steps.get-version.outputs.will-release == 'true' }}
@@ -39,9 +47,10 @@ runs:
   steps:
     - id: get-version
       name: Get version
-      uses: shiipou/sem-version@stable
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+      uses: lenra-io/github-actions@main
       with:
+        node-version: ${{ inputs.node-version }}
+        dry-run: true
         release-branches: ${{ inputs.release-branches }}
         prerelease-branches: ${{ inputs.prerelease-branches }}
+        github-token: ${{ inputs.github-token }}

@@ -107,7 +107,7 @@ jobs:
           upload-key-password: ${{ secrets.upload-key-password }}
 
       - name: Build
-        uses: shiipou/github-actions/jobs/build-flutter@main
+        uses: lenra-io/github-actions/jobs/build-flutter@main
         with:
           version: ${{ inputs.version }}
           build: ${{ inputs.build }}

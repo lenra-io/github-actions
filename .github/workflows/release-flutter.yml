@@ -58,7 +58,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts/
-      
+
       - id: list-assets
         name: List assets
         uses: actions/github-script@v6
@@ -105,7 +105,7 @@ jobs:
 
             const prereleaseTracks = ['beta', 'alpha', 'internal']
             const prereleaseChannels = "${{ inputs.prerelease-branches }}".split(',')
-            
+
             if (prereleaseChannels.includes(currentChannel)) {
               const index = prereleaseChannels.indexOf(currentChannel)
               if (index >= prereleaseTracks.length) {
@@ -114,15 +114,15 @@ jobs:
               return prereleaseTracks[index]
             }
             return prereleaseTracks.pop()
-      
+
       - id: get-changelogs
         name: Get ChangeLogs
-        uses: shiipou/github-actions/jobs/get-changelogs@main
+        uses: lenra-io/github-actions/jobs/get-changelogs@main
         with:
           version: ${{ inputs.version }}
-      
+
       - name: Publish to playstore
-        uses: shiipou/github-actions/jobs/publish-to-playstore@main
+        uses: lenra-io/github-actions/jobs/publish-to-playstore@main
         with:
           service-account: service_account.json
           version: ${{ inputs.version }}

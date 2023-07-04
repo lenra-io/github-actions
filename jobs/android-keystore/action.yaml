@@ -1,6 +1,6 @@
 name: Android keystore
 description: 'Will define keystore and key properties for Android signing'
-author: shiipou
+author: lenra-io
 branding:
   color: blue
   icon: package

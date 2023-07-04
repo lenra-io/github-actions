@@ -44,7 +44,8 @@ jobs:
 
       - id: get-version
         name: Release
-        uses: shiipou/github-actions/jobs/get-version@main
+        uses: lenra-io/github-actions/jobs/get-version@main
         with:
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

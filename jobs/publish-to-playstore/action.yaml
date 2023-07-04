@@ -1,6 +1,6 @@
 name: publish-to-playstore
 description: Publish a new version of the project to the PlayStore
-author: shiipou
+author: lenra-io
 branding:
   color: green
   icon: tag
@@ -21,7 +21,7 @@ inputs:
   mapping-file:
     description: 'The mapping.txt file used to de-obfuscate your stack traces from crash reports'
     required: false
-  track: 
+  track:
     description: 'The track to publish the release to'
     required: false
     default: 'production'
@@ -52,12 +52,12 @@ runs:
             const changelog = match[2]
             changelogsMap[locale] = changelog
           }
-          
+
           if (changelogsMap.length == 0) {
             changelogsMap['${{ inputs.default-locale }}'] = changelogs
           }
           core.debug(`changelogsMap=${JSON.stringify(changelogsMap)}`)
-          
+
           return changelogsMap
 
     - name: write localized changelogs
