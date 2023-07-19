@@ -13,10 +13,6 @@ on:
         description: The branches on which prereleases should happen, comma separated name of branches
         required: false
         default: '^(rc|beta|alpha)$'
-    secrets:
-      github-token:
-        description: 'The GitHub access token to use to get the next version (needed by semantic release...)'
-        required: true
     outputs:
       version:
         description: The version that was released
@@ -32,7 +28,7 @@ on:
         value: ${{ jobs.get-version.outputs.will-release }}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   get-version:
@@ -49,8 +45,8 @@ jobs:
       - id: get-version
         name: Release
         uses: lenra-io/github-actions/jobs/release@main
-        secrets: inherit
         with:
           dry-run: true
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

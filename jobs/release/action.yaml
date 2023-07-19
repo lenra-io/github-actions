@@ -30,7 +30,6 @@ inputs:
     description: To send or not the "Released" comment when the PR is include in a (pre)released tag
     required: false
     default: 'false'
-secrets:
   github-token:
     description: 'The GitHub token to use to authenticate to the GitHub API'
     required: true
@@ -88,5 +87,5 @@ runs:
       id: semantic-release
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: npx --force -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p https://github.com/Tlepel/semantic-release.git#fix-versions-share-head semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)
