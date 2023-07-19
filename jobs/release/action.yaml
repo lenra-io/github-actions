@@ -36,10 +36,10 @@ inputs:
 outputs:
   version:
     description: "The next version discovered by conventional commits"
-    value: ${{ steps.semantic-release.outputs.new-release-published }}
+    value: ${{ steps.semantic-release.outputs.version }}
   will-release:
     description: "Whether the next version is a prerelease or not"
-    value: ${{ steps.semantic-release.outputs.new-release-published == 'true' }}
+    value: ${{ steps.semantic-release.outputs.will-release == 'true' }}
 
 runs:
   using: "composite"
@@ -88,4 +88,15 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-      run: npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p semantic-release@19 semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) && cat $GITHUB_OUTPUT
+      run: |
+        export NEXT_VERSION=$(npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p semantic-release@19 semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi))
+        echo $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
+        echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+        if [[ "$NEXT_VERSION" -eq "" ]]; then
+          echo "will-release=false" >> $GITHUB_OUTPUT
+        else
+          echo "will-release=true" >> $GITHUB_OUTPUT
+        fi
+        cat $GITHUB_OUTPUT
+
