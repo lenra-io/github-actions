@@ -23,6 +23,10 @@ on:
         description: The assets to upload
         required: false
         default: ''
+    secrets:
+      github-token:
+        description: 'The GitHub access token to use for the release'
+        required: true
 
 permissions:
   contents: write
@@ -46,4 +50,5 @@ jobs:
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
           assets: ${{ inputs.assets }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        secrets:
+          github-token: ${{ secrets.github-token }}
