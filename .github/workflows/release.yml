@@ -41,7 +41,7 @@ jobs:
           path: artifacts/
 
       - name: Release
-        uses: ../../jobs/release
+        uses: ./../../jobs/release
         with:
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
