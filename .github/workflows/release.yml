@@ -41,7 +41,7 @@ jobs:
           path: artifacts/
 
       - name: Release
-        uses: lenra-io/github-actions/jobs/release@main
+        uses: ../../jobs/release
         with:
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}

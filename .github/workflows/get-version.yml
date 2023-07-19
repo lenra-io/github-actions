@@ -44,7 +44,7 @@ jobs:
 
       - id: get-version
         name: Release
-        uses: lenra-io/github-actions/jobs/release@main
+        uses: ../../jobs/release
         with:
           dry-run: true
           release-branches: ${{ inputs.release-branches }}
