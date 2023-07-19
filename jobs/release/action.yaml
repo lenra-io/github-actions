@@ -89,6 +89,3 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p semantic-release@19 semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) && cat $GITHUB_OUTPUT
-  outputs:
-    new-release-published: ${{ steps.semantic-release.outputs.new-release-published == 'true' }}
-    new-release-version: ${{ steps.semantic-release.outputs.new-release-version }}
