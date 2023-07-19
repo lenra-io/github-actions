@@ -89,14 +89,12 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        export NEXT_VERSION=$(npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p semantic-release@19 semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi)  | grep -i 'The next release version is' | sed -E 's/.*The next release version is (.+)$/\1/')
-        echo $GITHUB_OUTPUT
-        cat $GITHUB_OUTPUT
+        npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p semantic-release@19 semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) | tee out.log
+        export NEXT_VERSION=$(grep -i 'The next release version is' out.log | sed -E 's/.*The next release version is (.+)$/\1/')
         echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
         if [[ "$NEXT_VERSION" -eq "" ]]; then
           echo "will-release=false" >> $GITHUB_OUTPUT
         else
           echo "will-release=true" >> $GITHUB_OUTPUT
         fi
-        cat $GITHUB_OUTPUT
 
