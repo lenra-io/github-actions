@@ -49,9 +49,8 @@ jobs:
       - id: get-version
         name: Release
         uses: lenra-io/github-actions/jobs/release@main
+        secrets: inherit
         with:
           dry-run: true
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
-        secrets:
-          github-token: ${{ secrets.github-token }}

@@ -50,5 +50,4 @@ jobs:
           release-branches: ${{ inputs.release-branches }}
           prerelease-branches: ${{ inputs.prerelease-branches }}
           assets: ${{ inputs.assets }}
-        secrets:
-          github-token: ${{ secrets.github-token }}
+        secrets: inherit
