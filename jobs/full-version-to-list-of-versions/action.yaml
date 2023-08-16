@@ -1,0 +1,80 @@
+name: full-version-to-list-of-versions
+description: extract a list of versions from a full version
+author: Lenra-io
+branding:
+  color: blue
+  icon: tag
+
+inputs:
+  version:
+    description: The version to extract the list of versions from
+    required: true 
+  prefix:
+    description: The prefix to add before each version in the version list
+    required: false
+  suffix:
+    description: The suffix to add after each version in the version list
+    required: false 
+  separator:
+    description: The separator to use between each version in the version list
+    required: false
+    default: ","
+  use-latest:
+    description: Whether to add the latest version or not in the version list if it's the latest release (not pre-release)
+    required: false
+    default: "false"
+
+outputs:
+  versions:
+    description: "The list of versions extracted from the full version"
+    value: ${{ steps.extract-versions.outputs.versions }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract versions
+      id: extract-versions
+      env:
+        VERSION: ${{ inputs.version }}
+        PREFIX: ${{ inputs.prefix }}
+        SUFFIX: ${{ inputs.suffix }}
+        SEPARATOR: ${{ inputs.separator }}
+        USE_LATEST: ${{ inputs.use-latest }}
+      uses: actions/github-script@v5
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          function getTag(version, prefix = "", suffix = "", useLatest = false) {
+            const regex = /([0-9]+(\.[0-9]+){2})(-([a-z]+)\.([0-9]+))?/
+            const match = version.match(regex)
+
+            if (match) {
+              const v = match[1]
+              const channel = match[4]
+              const channelVersion = match[5]
+
+              const [major, minor, patch] = v.split(".")
+
+              let tags = [`${major}`, `${major}.${minor}`, `${major}.${minor}.${patch}`]
+
+              if (channel) {
+                tags = tags.map(tag => `${tag}-${channel}`)
+                tags.push(`${v}-${channel}.${channelVersion}`)
+              } else if(useLatest)) {
+                tags.push(`latest`)
+              }
+
+              return tags.map(tag => `${prefix}${tag}${suffix}`)
+            } else {
+              throw new Error(`Version '${version}' didn't pass Regex '${regex}'.`)
+            }
+          }
+
+          const version = process.env.VERSION
+          const prefix = process.env.PREFIX || ""
+          const suffix = process.env.SUFFIX || ""
+          const separator = process.env.SEPARATOR
+          const useLatest = process.env.USE_LATEST != "false"
+          const versions = getTag(version, prefix, suffix, useLatest)
+
+          core.setOutput('versions', versions.join(separator))
