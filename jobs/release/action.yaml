@@ -76,7 +76,7 @@ runs:
         echo "    - successComment: ${{ inputs.send-pr-release-notification }}" >> .releaserc.yml
         # add assets to the github release
         if [ -n "${{ inputs.assets }}" ]; then
-          echo "    - assets:" >> .releaserc.yml
+          echo "      assets:" >> .releaserc.yml
           for asset in $(echo ${{ inputs.assets }} | tr "," "\n"); do
             echo "      - $asset" >> .releaserc.yml
           done
