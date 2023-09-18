@@ -1,0 +1,36 @@
+name: Build Elixir
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: 'The directory where to run the action'
+        required: false
+        default: '.'
+      version:
+        type: string
+        description: 'Version of the package to deploy'
+        required: true
+      artifacts:
+        type: string
+        description: 'Path to the artifacts build by the action (dist/macos/*.{zip,dmg})'
+        required: true
+
+jobs:
+  build:
+    name: Build elixir
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build
+        uses: lenra-io/github-actions/jobs/build-elixir@main
+        with:
+          version: ${{ inputs.version }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ inputs.artifacts }}

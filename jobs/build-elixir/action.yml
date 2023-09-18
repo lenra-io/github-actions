@@ -1,0 +1,92 @@
+name: Elixir Build
+description: 'Build a Elixir app'
+author: lenra-io
+branding:
+  color: blue
+  icon: package
+
+inputs:
+  version:
+    description: 'The version of the app to build'
+    required: true
+  mix_env:
+    description: 'The MIX_ENV variable to use for building'
+    required: false
+    default: 'prod'
+
+
+runs:
+  using: "composite"
+  steps:
+  - name: Setup Elixir
+    uses: erlef/setup-beam@v1
+    id: beam
+    with:
+      elixir-version: "1.13" # Define the elixir version [required]
+      otp-version: "24" # Define the OTP version [required]
+  - name: Restore dependencies & build cache
+    uses: actions/cache@v2
+    with:
+      path: |
+        deps
+        _build
+      key: ${{ runner.os }}-mix-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/mix.lock') }}
+      restore-keys: ${{ runner.os }}-mix-${{ secrets.CACHE_VERSION }}-
+  # Don't cache PLTs based on mix.lock hash, as Dialyzer can incrementally update even old ones
+  # Cache key based on Elixir & Erlang version (also useful when running in matrix)
+  # (Source : https://github.com/jeremyjh/dialyxir#github-actions)
+  - name: Restore PLT cache
+    uses: actions/cache@v2
+    id: plt_cache
+    with:
+      key: |
+        ${{ runner.os }}-${{ secrets.CACHE_VERSION }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
+      restore-keys: |
+        ${{ runner.os }}-${{ secrets.CACHE_VERSION }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
+      path: |
+        .plts
+
+  - name: Update version
+    uses: actions/github-script@v6
+    with:
+      script: |
+        // Update pubspec.yaml inplace
+        const fs = require('fs')
+        const path = require('path')
+        const pubspecPath = path.join(process.env.GITHUB_WORKSPACE, 'mix.exs')
+        // edit version and build number
+        const mix_exs = fs.readFileSync(pubspecPath, 'utf8')
+        const version = '${{ inputs.version }}'
+        let version_string = `${version}`
+
+        const new_mix_exs = mix_exs.replace(/version: .*/, `version: "${version_string}",`)
+        fs.writeFileSync(pubspecPath, newPubspec)
+
+  - name: Install dependencies
+    shell: sh
+    env:
+      MIX_ENV: ${{ inputs.mix_env }}
+    run: mix deps.get
+  - name: Compile project
+    shell: sh
+    env:
+      MIX_ENV: ${{ inputs.mix_env }}
+    run: mix compile
+  - name: Check formatting
+    shell: sh
+    run: mix format --check-formatted
+  - name: Check code style with credo
+    shell: sh
+    run: mix credo --strict
+  - name: Run tests
+    shell: sh
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: '5432'
+      MIX_ENV: ${{ inputs.mix_env }}
+    run: mix test
+  - name: Run dialyzer
+    shell: sh
+    env:
+      MIX_ENV: ${{ inputs.mix_env }}
+    run: mix dialyzer
