@@ -9,7 +9,7 @@ inputs:
   node-version:
     description: The version of node to use
     required: false
-    default: '18'
+    default: 'lts/*'
   dry-run:
     description: Whether to publish the release or not
     required: false
@@ -44,6 +44,10 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
     - name: Check if file exists
       id: file_releaserc
       shell: bash
@@ -89,7 +93,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        npx -p conventional-changelog-conventionalcommits@5 -p semantic-release/git -p semantic-release-export-data -p semantic-release@19 semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) | tee out.log
+        npx -p conventional-changelog-conventionalcommits -p semantic-release/git -p semantic-release-export-data -p semantic-release semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) | tee out.log
         export NEXT_VERSION=$(grep -i 'next release version is' out.log | sed -E 's/.*next release version is (.+)$/\1/')
         echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
         if [[ "$NEXT_VERSION" -eq "" ]]; then
