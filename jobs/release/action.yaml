@@ -93,7 +93,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        npx -p conventional-changelog-conventionalcommits@7.0.2 -p semantic-release/git -p semantic-release-export-data -p semantic-release semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) | tee out.log
+        npx -p conventional-changelog-conventionalcommits@8 -p semantic-release/git -p semantic-release-export-data -p semantic-release semantic-release $(if [ "${{inputs.dry-run}}" != "false" ]; then echo "--dry-run"; fi) | tee out.log
         export NEXT_VERSION=$(grep -i 'next release version is' out.log | sed -E 's/.*next release version is (.+)$/\1/')
         echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
         if [[ "$NEXT_VERSION" -eq "" ]]; then
