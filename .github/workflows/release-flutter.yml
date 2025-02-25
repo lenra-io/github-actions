@@ -61,7 +61,7 @@ jobs:
 
       - id: list-assets
         name: List assets
-        uses: actions/github-script@v6
+        uses: actions/github-script@v5
         with:
           result-encoding: string
           script: |
@@ -75,7 +75,7 @@ jobs:
 
       - name: Get android asset
         id: get-android-asset
-        uses: actions/github-script@v6
+        uses: actions/github-script@v5
         with:
           result-encoding: string
           script: |
@@ -92,7 +92,7 @@ jobs:
 
       - id: get-track-to-release
         name: Get track to release
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           result-encoding: string
           script: |
