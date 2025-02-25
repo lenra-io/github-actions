@@ -1,5 +1,5 @@
 name: Check Flutter App
-description: Check Flutter app for code style and static analysis issues.
+# description: Check Flutter app for code style and static analysis issues.
 
 on:
   workflow_call:

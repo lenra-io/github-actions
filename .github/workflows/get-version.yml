@@ -1,5 +1,5 @@
 name: Get Version
-description: Determine the version of the project based on the latest commit and generate a changelog using the Rust Convco cli tool.
+# description: Determine the version of the project based on the latest commit and generate a changelog using the Rust Convco cli tool.
 
 on:
   workflow_call:

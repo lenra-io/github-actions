@@ -1,5 +1,5 @@
 name: Jacoco Report
-description: Parse and check Jacoco coverage report.
+# description: Parse and check Jacoco coverage report.
 
 on:
   workflow_call:

@@ -1,5 +1,5 @@
 name: Build Flutter App
-description: Build Flutter app for the chosen targets. Will output the build file(s) for the selected platform as an artifact.
+# description: Build Flutter app for the chosen targets. Will output the build file(s) for the selected platform as an artifact.
 
 on:
   workflow_call:

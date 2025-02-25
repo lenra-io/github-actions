@@ -1,5 +1,5 @@
 name: Deploy Flutter App
-description: Deploy Flutter app to PlayStore or AppStore, can also deploy to any publisher listed in flutter_distributor (https://distributor.leanflutter.dev/getting-started/)
+# description: Deploy Flutter app to PlayStore or AppStore, can also deploy to any publisher listed in flutter_distributor (https://distributor.leanflutter.dev/getting-started/)
 
 on:
   workflow_call:

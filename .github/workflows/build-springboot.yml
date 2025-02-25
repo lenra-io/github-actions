@@ -1,5 +1,5 @@
 name: Build Spring Boot App
-description: Build a Spring Boot application and generate a JAR artifact.
+# description: Build a Spring Boot application and generate a JAR artifact.
 
 on:
   workflow_call:
