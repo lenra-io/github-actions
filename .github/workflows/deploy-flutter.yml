@@ -19,7 +19,7 @@ on:
       package-name:
         type: string
         description: 'The package name of the app'
-        required: true
+        required: false
       playstore-track:
         type: string
         description: 'Release type (one of: "production", "qa", "beta", "alpha")'
