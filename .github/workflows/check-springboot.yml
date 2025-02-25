@@ -1,0 +1,38 @@
+name: Check Spring Boot Code
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: 'Current Working directory (Useful for mono-repo)'
+        required: false
+        default: '.'
+      java-version:
+        type: string
+        description: 'Version of Java to use'
+        required: true
+        default: '17'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Check code style
+        run: mvn checkstyle:check
+
+      - name: Run static code analysis
+        run: mvn spotbugs:check

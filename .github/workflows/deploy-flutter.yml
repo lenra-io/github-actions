@@ -1,0 +1,75 @@
+name: Deploy Flutter App
+
+on:
+  workflow_call:
+    inputs:
+      store:
+        type: string
+        description: 'The target store (playstore or appstore)'
+        required: true
+      artifact-name:
+        type: string
+        description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
+        required: true
+      artifact-path:
+        type: string
+        description: 'Path to the build file to deploy (inside of the artifact)'
+        required: true
+      package-name:
+        type: string
+        description: 'The package name of the app'
+        required: true
+      playstore-track:
+        type: string
+        description: 'Release type (one of: "production", "qa", "beta", "alpha")'
+        required: false
+    secrets:
+      playstore-service-account-json:
+        description: 'Service account JSON for PlayStore deployment'
+        required: false
+      appstore-username:
+        description: 'Apple AppStore Username (require appstore-password)'
+        required: false
+      appstore-password: 
+        description: 'Apple AppStore Password'
+        required: false
+      appstoore-apikey: 
+        description: 'Apple AppStore API Key (require appstore-apiissuer)'
+        required: false
+      appstore-apiissuer:
+        description: 'Apple AppStore API Issuer'
+        required: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ./artifacts/
+
+      - name: Deploy App using flutter_distributor
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.service-account-json }}
+        run: |
+          artifact_path="$(realpath ./artifacts/${{ inputs.artifact-path }})"
+          echo "Deploying to ${{ inputs.store }} using flutter_distributor..."
+          release_cmd="flutter_distributor publish \
+            --targets ${{ inputs.store }} \
+            --path $artifact_path"
+          if [ "${{ inputs.store }}" = "playstore" ]; then
+            # Write the service account JSON to a file for deployment.
+            echo "$SERVICE_ACCOUNT_JSON" > service_account.json
+            release_cmd="${release_cmd} --playstore-package-name ${{ inputs.package-name }}"
+            if [ -n "${{ inputs.changelogs }}" ]; then
+              release_cmd="${release_cmd} --playstore-track ${{ inputs.release_type }}"
+            fi
+          elif [ "${{ inputs.store }}" = "appstore" ]; then
+            release_cmd="${release_cmd} --playstore-package-name ${{ inputs.package-name }}"
+            if [ -n "${{ inputs.changelogs }}" ]; then
+              release_cmd="${release_cmd} --playstore-track ${{ inputs.release_type }}"
+            fi
+          fi
+          echo "Running: $release_cmd"
+          $release_cmd

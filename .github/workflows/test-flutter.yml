@@ -1,0 +1,57 @@
+name: Test Flutter App
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: 'Current Working directory (Useful for mono-repo and run this only in this directory)'
+        required: false
+        default: '.'
+      flutter-version:
+        type: string
+        description: 'Version of Flutter to use'
+        required: false
+      flutter-channel:
+        type: string
+        description: 'Channel of Flutter to use'
+        required: false
+        default: 'stable'
+    outputs:
+      artifact-name:
+        description: 'Coverage report artifact name'
+        value: ${{ jobs.test.outputs.artifact-name }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    outputs:
+      artifact-name: ${{ steps.test.outputs.artifact-name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter Environment
+        uses: subosito/flutter-action@v2.18.0
+        with:
+          channel: ${{ inputs.flutter-channel }}
+          flutter-version: ${{ inputs.flutter-version }}
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:" # optional, change this to specify the cache path
+
+      - name: Run tests and generate coverage report
+        id: test
+        run: |
+          flutter test --coverage
+          GENERATED_COVERAGE_NAME="$(mktemp -u -t coverage-XXXX)"
+          echo "artifact-name=${GENERATED_COVERAGE_NAME}" >> $GITHUB_OUTPUT
+          
+      - name: Upload ${{ steps.test.outputs.artifact-name}} artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.test.outputs.artifact-name }}
+          path: coverage/

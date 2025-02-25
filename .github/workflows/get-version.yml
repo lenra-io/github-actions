@@ -1,52 +1,63 @@
-name: Get version
+name: Get Version
 
 on:
   workflow_call:
     inputs:
-      release-branches:
+      path:
         type: string
-        description: The branches on which releases should happen, comma separated name of branches
+        description: 'Only commits that update those <paths> will be taken into account.'
         required: false
-        default: 'main'
+      release-branch:
+        type: string
+        description: 'Name of the release branch'
+        required: false
+        default: main
       prerelease-branches:
         type: string
-        description: The branches on which prereleases should happen, comma separated name of branches
+        description: 'Prerelease branch names'
         required: false
-        default: 'rc,beta,alpha'
+        default: beta,alpha,rc
+      changelog-include-hidden-section:
+        type: boolean
+        description: 'Include hidden sections in the changelog'
+        required: false
+        default: false
     outputs:
       version:
-        description: The version that was released
-        value: ${{ jobs.get-version.outputs.version }}
-      is-prerelease:
-        description: The version that was released
-        value: ${{ jobs.get-version.outputs.is-prerelease }}
-      changelogs:
-        description: The version that was released
-        value: ${{ jobs.get-version.outputs.changelogs }}
-      will-release:
-        description: The version will be released
-        value: ${{ jobs.get-version.outputs.will-release }}
-
-permissions:
-  contents: write
+        description: 'The calculated version'
+        value: ${{ jobs.get_version.outputs.version }}
 
 jobs:
-  get-version:
+  get_version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get-version.outputs.version }}
-      is-prerelease: ${{ steps.get-version.outputs.is-prerelease }}
-      changelogs: ${{ steps.get-version.outputs.changelogs }}
-      will-release: ${{ steps.get-version.outputs.will-release }}
+      version: ${{ steps.get_version.outputs.version }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - id: get-version
-        name: Release
-        uses: lenra-io/github-actions/jobs/release@main
-        with:
-          dry-run: true
-          release-branches: ${{ inputs.release-branches }}
-          prerelease-branches: ${{ inputs.prerelease-branches }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Determine version using convco CLI
+        id: get_version
+        run: |
+          echo "Using release branch: ${{ inputs.release-branch }}"
+          echo "Using prerelease branches: ${{ inputs.prerelease-branches }}"
+          if [[ -n "${{ inputs.path }}" ]]; then
+            echo "Using path: ${{ inputs.path }}"
+            path_args="--path ${{ inputs.path }}"
+          fi
+          IFS="," read -ra prerelease_branches <<< "${{ inputs.prerelease-branches }}"
+          current_branch=${{ github.ref_name }}
+          if [[ "$IFS${prerelease_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]] ; then
+            prerelease_args="--prerelease"
+            channel=${current_branch}
+          fi
+          if ${{ inputs.include-hidden-section }} ; then
+            hidden_args="--include-hidden-section"
+          fi
+          VERSION=$(convco version -b $prerelease_args)
+          CHANGELOG=$(convco changelog $hidden_args -u $VERSION)
+          echo "Determined version: ${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          if [[ -n "${channel}" ]]; then
+            echo "channel=${channel}" >> $GITHUB_OUTPUT
+          fi
+          echo "changelog=${CHANGELOG}" >> $GITHUB_OUTPUT
