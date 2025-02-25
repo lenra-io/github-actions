@@ -1,4 +1,5 @@
 name: Update PR Custom Status
+description: Create or Update the status of a check run on a PR. This allow to create a custom message with a status on a PR.
 
 on:
   workflow_call:

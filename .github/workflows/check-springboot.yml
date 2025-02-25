@@ -1,4 +1,5 @@
 name: Check Spring Boot Code
+description: Run code style and static code analysis checks for a Spring Boot application.
 
 on:
   workflow_call:

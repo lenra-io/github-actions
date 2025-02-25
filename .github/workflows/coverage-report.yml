@@ -1,4 +1,5 @@
 name: Coverage Report
+description: Parse a coverage report and, if needed, check if the coverage is above a minimum threshold.
 
 on:
   workflow_call:

@@ -1,4 +1,5 @@
 name: Build Docker Image
+description: Build a Docker image with a prebuild artifact included.
 
 on:
   workflow_call:

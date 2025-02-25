@@ -1,4 +1,5 @@
 name: Build Flutter App
+description: Build Flutter app for the chosen targets. Will output the build file(s) for the selected platform as an artifact.
 
 on:
   workflow_call:
@@ -29,6 +30,7 @@ on:
         type: string
         description: 'Comma separated list of flutter build extra args (e.g., release,verbose,obfuscate,split-per-abi)'
         required: false
+        default: 'release,obfuscate'
       platform:
         type: string
         description: 'Target platform'

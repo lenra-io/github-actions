@@ -1,4 +1,6 @@
 name: Upsert Release
+description: Create or update a release on GitHub. Creation will insert everything, update will only add new assets.
+
 on:
   workflow_dispatch:
     inputs:
