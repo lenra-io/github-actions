@@ -45,38 +45,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-      - name: Restore convco from cache
-        id: convco-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry/
-            ~/.cargo/git/
-            ~/.cargo/bin/
-            /var/lib/apt/lists
-          key: ${{ runner.os }}-convco-${{ inputs.convco-version }}
-          restore-keys: ${{ runner.os }}-convco-
-      - name: Install cmake
-        run: |
-          if ! command -v cmake &> /dev/null; then
-            sudo apt-get update && sudo apt-get install -y cmake
-          fi
+      
       - name: Setup convco
-        run: |
-          echo "${{steps.convco-cache.outputs.cache-hit}}"
-      - name: Setup convco
-        if: steps.convco-cache.outputs.cache-hit != 'true'
-        run: |
-          args=""
-          if [ "${{ inputs.convco-version }}" != "latest" ]; then
-            args="--version ${{ inputs.convco-version }}"
-          fi
-          cargo install convco $args --force
+        uses: convco/convco-action@v0.2.0
+        
       - name: Determine version using convco CLI
         id: get_version
         run: |
@@ -85,31 +57,36 @@ jobs:
             path_args="--path ${{ inputs.path }}"
           fi
           IFS="," read -ra prerelease_branches <<< "${{ inputs.prerelease-branches }}"
-          IFS="," read -ra release_branches <<< "${{ inputs.prerelease-branches }}"
+          IFS="," read -ra release_branches <<< "${{ inputs.release-branches }}"
           current_branch=${{ github.ref_name }}
           must_release=false
           if [[ "$IFS${prerelease_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]] ; then
             must_release=true
-            prerelease_args="--prerelease"
+            prerelease_args="--prerelease ${current_branch}"
             channel=${current_branch}
           fi
-          if [[ "$IFS${prerelease_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]]; then
+          if [[ "$IFS${release_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]]; then
             must_release=true
           fi
           if ${must_release} ; then
-            if ${{ inputs.changelog-include-hidden-section }} ; then
-              hidden_args="--include-hidden-section"
-            fi
             VERSION=$(~/.cargo/bin/convco version -b $prerelease_args)
-            CHANGELOG=$(~/.cargo/bin/convco changelog $hidden_args -u $VERSION)
             echo "Determined version: ${VERSION}"
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
-            if [ -n "${channel}" ]; then
-              echo "channel=${channel}" >> $GITHUB_OUTPUT
+            tag="$(git tag --list $VERSION)"
+            if [ -n "$tag" ] ; then
+              if ${{ inputs.changelog-include-hidden-section }} ; then
+                hidden_args="--include-hidden-section"
+              fi
+              CHANGELOG=$(~/.cargo/bin/convco changelog $hidden_args -u $VERSION)
+              echo "version=${VERSION}" >> $GITHUB_OUTPUT
+              if [ -n "${channel}" ]; then
+                echo "channel=${channel}" >> $GITHUB_OUTPUT
+              fi
+              echo "changelog<<EOF" >> $GITHUB_OUTPUT
+              echo "${CHANGELOG}" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "Will not release: Version already exist"
             fi
-            echo "changelog<<EOF" >> $GITHUB_OUTPUT
-            echo "${CHANGELOG}" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "Will not release: Event not hit a release_branches or prerelease_branches"
           fi
