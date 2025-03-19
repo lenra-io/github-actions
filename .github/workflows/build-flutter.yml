@@ -137,37 +137,7 @@ jobs:
 
           dart pub global activate flutter_distributor
 
-          platform=${{ inputs.platform }}
-          IFS=',' read -r -a flutter_extra_args <<< "${{ inputs.flutter-extra-args }}"
-          IFS=',' read -r -a targets <<< "${{ inputs.targets }}"
-
-          if [ "${#targets[@]}" -gt 0 ]; then
-            echo "No targets specified. Exiting..."
-            exit 1
-          fi
-
-          # If flutter_extra_args has split-per-abi,
-          # separate APK build than other targets 
-          # and use split-per-abi only on android apk build.
-          if [ "${platform}" = "android" ]; then
-            if [[ " ${flutter_extra_args[@]} " =~ " split-per-abi " ]]; then
-              echo "WARNING: Splitting per ABI only work on APK targets. Removing it from other android targets."
-              flutter_distribution package --flutter-extra-args=$(IFS="," echo "${flutter_extra_args[*]}") --platform android --targets apk
-              build_path="build/app/outputs/flutter-apk"
-              output_path="dist/${{ inputs.version }}+${{ inputs.build }}"
-              wrong_file_path=$(ls ${output_path}/*.apk | head -n1)
-              generated_name=$(basename "${wrong_file_path%-*}")
-              rm ${output_path}/*-${{ inputs.version }}+${{ inputs.build }}-*.apk
-              # for each in build/app/outputs/flutter-apk/*.apk
-              flutter_extra_args=(${flutter_extra_args[@]//*split-per-abi*/})
-              targets=(${targets[@]//*apk*/})
-            fi
-          fi
-
-          # if targets is not empty, build the targets
-          if [ "${#targets[@]}" -gt 0 ]; then
-            flutter_distributor package --flutter-extra-args=$(IFS="," echo "${flutter_extra_args[*]}") --platform ${{ inputs.platform }} --targets $(IFS="," echo "${targets[*]}")
-          fi
+          flutter_distributor package --flutter-extra-args="${{ inputs.flutter-extra-args }}" --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
       - name: Upload build artifacts
         if: inputs.artifacts != ''
         uses: actions/upload-artifact@v4
