@@ -68,7 +68,7 @@ jobs:
       - name: Parse coverage report
         id: coverage
         run: |
-          regex='^\s*(lines|functions|branches)\.+: ([0-9]+\.?[0-9]*)% \(([0-9]+) of ((?:[0-9]+,?)+) \w+\)$'
+          regex='^\s*(lines|functions|branches)\.+: ([0-9]+\.?[0-9]*)% \(([0-9]+) of ([0-9]+) \w+\)$'
           while read -r line; do
             if [[ $line =~ $regex ]]; then
               echo "${BASH_REMATCH[1]}-covered=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
