@@ -99,11 +99,6 @@ jobs:
               conclusion = conclusion_input;
             }
 
-            let url;
-            if(url_input) {
-              url = url_input;
-            }
-
             // Extract owner and repo from the GITHUB_REPOSITORY environment variable
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 
