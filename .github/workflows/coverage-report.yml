@@ -65,19 +65,12 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: coverage/
-      - name: Parse coverage report
-        id: coverage
-        run: |
-          regex='^\s*(lines|functions|branches)\.+: ([0-9]+\.?[0-9]*)% \(([0-9]+) of ([0-9]+) \w+\)$'
-          while read -r line; do
-            if [[ $line =~ $regex ]]; then
-              echo "${BASH_REMATCH[1]}-covered=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
-              echo "${BASH_REMATCH[1]}-total=${BASH_REMATCH[4]}" >> $GITHUB_OUTPUT
-              echo "${BASH_REMATCH[1]}-percentage=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
-            fi
-          done < <(lcov --summary ${{ inputs.artifact-path }})
+      - uses: VeryGoodOpenSource/very_good_coverage@v2
+        with:
+          path: '${{ inputs.artifact-path }}'
+          min_coverage: '${{ inputs.min-lines-coverage }}'
       - name: Check coverage report data
-        if: ${{ inputs.min-lines-coverage }}
+        if: inputs.min-lines-coverage != ""
         run: |
           if [[ ${{ steps.coverage.outputs.lines-percentage }} -lt ${{ inputs.min-lines-coverage }} ]]; then
             echo "Coverage is below the minimum required (${{ inputs.min-lines-coverage }}%): ${{ steps.coverage.outputs.lines-percentage }}%"
