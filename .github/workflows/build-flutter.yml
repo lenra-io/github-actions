@@ -135,9 +135,9 @@ jobs:
           echo "Build ID: ${{ inputs.build }}"
           echo "Targets: ${{ inputs.targets }}"
 
-          dart pub global activate flutter_distributor
+          dart pub global activate fastforge
 
-          flutter_distributor package --flutter-extra-args="${{ inputs.flutter-extra-args }}" --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
+          fastforge package --flutter-extra-args="${{ inputs.flutter-extra-args }}" --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
       - name: Upload build artifacts
         if: inputs.artifacts != ''
         uses: actions/upload-artifact@v4
