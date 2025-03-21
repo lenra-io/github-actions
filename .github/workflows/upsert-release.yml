@@ -5,9 +5,11 @@ on:
   workflow_call:
     inputs:
       version:
+        type: string
         description: 'Release tag (e.g., 1.0.0)'
         required: true
       changelog:
+        type: string
         description: 'Changelog text (only used when creating a release)'
         required: false
       artifact-name:
