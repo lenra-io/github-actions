@@ -1,121 +1,145 @@
-name: Build Flutter
+name: Build Flutter App
+# description: Build Flutter app for the chosen targets. Will output the build file(s) for the selected platform as an artifact.
 
 on:
   workflow_call:
     inputs:
       working-directory:
         type: string
-        description: 'The directory where to run the action'
+        description: 'Current Working directory (Useful for mono-repo and run this only in this directory)'
         required: false
         default: '.'
-      package-name:
-        type: string
-        description: 'Name of the package to deploy'
-        required: true
       version:
         type: string
-        description: 'Version of the package to deploy'
+        description: 'Version to build'
         required: true
       build:
         type: string
-        description: 'Build number of the package to deploy'
+        description: 'Build identifier'
         required: true
       flutter-version:
         type: string
         description: 'Version of Flutter to use'
         required: false
-        default: '3.x.x'
+      flutter-channel:
+        type: string
+        description: 'Channel of Flutter to use'
+        required: false
+        default: 'stable'
+      flutter-extra-args:
+        type: string
+        description: 'Comma separated list of flutter build extra args (e.g., release,verbose,obfuscate,split-per-abi)'
+        required: false
+        default: 'release,obfuscate'
       platform:
         type: string
-        description: 'Platform where to build the app (linux,android,...)'
+        description: 'Target platform'
         required: true
       targets:
         type: string
-        description: 'Target file extension to build (exe,apk,...)'
+        description: 'Build targets (comma separated if many)'
         required: true
       runner:
         type: string
-        description: 'The runner to use to build the app (ubuntu-latest, ....)'
+        description: 'Runner label (e.g., ubuntu-latest, macos-latest, windows-latest)'
         required: true
-      flutter-extra-args:
-        type: string
-        description: 'Extra build args to pass to the flutter_distributor commands'
-        required: false
-        default: ''
       artifacts:
         type: string
-        description: 'Path to the artifacts build by the action (dist/macos/*.{zip,dmg})'
-        required: true
+        description: 'Glob pattern for build artifacts'
+        required: false
     secrets:
       upload-key-store:
-        description: The keystore file to sign the app
+        description: 'Keystore file content for Android signing'
         required: false
       upload-key-name:
-        description: The name of the key to sign the app
+        description: 'Alias name for the Android key'
         required: false
       upload-key-password:
-        description: The password of the key to sign the app
-        required: false
-      service-account-json:
-        description: The token that'll authentificate the user to the Google Playstore API to create new release
+        description: 'Password for the Android key'
         required: false
 
 jobs:
   build:
-    name: Build ${{ matrix.platform }}
-#     strategy:
-#       matrix:
-#         platform: [ web, windows, linux, macos, android, ios ]
-#         include:
-#           - platform: web
-#             targets: zip
-#             runner: ubuntu-latest
-#             artifacts: dist/web/*.zip
-#           - platform: linux
-#             targets: zip,deb,rpm,appimage
-#             runner: ubuntu-latest
-#             artifacts: dist/linux/*.{zip,deb,rpm,AppImage}
-#           - platform: android
-#             targets: apk,aab
-#             runner: ubuntu-latest
-#             artifacts: dist/android/*.{apk,aab}
-#           - platform: windows
-#             targets: zip,exe,msix
-#             runner: windows-latest
-#             artifacts: dist/windows/*.{zip,exe,msix}
-#           - platform: macos
-#             targets: zip,dmg
-#             runner: macos-latest
-#             artifacts: dist/macos/*.{zip,dmg}
-#           - platform: ios
-#             targets: ipa
-#             runner: macos-latest
-#             artifacts: dist/ios/*.ipa
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     runs-on: ${{ inputs.runner }}
-    continue-on-error: true
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Build
-        if: runner.os == 'Linux'
-        uses: shiipou/github-actions/jobs/android-keystore@main
+      - name: Setup Flutter Environment
+        uses: subosito/flutter-action@v2.18.0
         with:
-          working-directory: './android'
+          channel: ${{ inputs.flutter-channel }}
+          flutter-version: ${{ inputs.flutter-version }}
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:" # optional, change this to specify the cache path
+
+      - name: Generate Keystore
+        if: inputs.platform == 'android'
+        uses: lenra-io/github-actions/jobs/android-keystore@main
+        with:
+          path: './android/app/key.properties'
           upload-key-store: ${{ secrets.upload-key-store }}
           upload-key-name: ${{ secrets.upload-key-name }}
+          upload-store-password: ${{ secrets.upload-key-password }}
           upload-key-password: ${{ secrets.upload-key-password }}
 
-      - name: Build
-        uses: lenra-io/github-actions/jobs/build-flutter@main
+      - name: Update version
+        uses: actions/github-script@v7
         with:
-          version: ${{ inputs.version }}
-          build: ${{ inputs.build }}
-          platform: ${{ inputs.platform }}
-          targets: ${{ inputs.targets }}
-          flutter-extra-args: ${{ inputs.flutter-extra-args }}
+          script: |
+            // Update pubspec.yaml inplace
+            const fs = require('fs')
+            const path = require('path')
+            const pubspecPath = path.join(process.env.GITHUB_WORKSPACE, 'pubspec.yaml')
+            // edit version and build number
+            const pubspec = fs.readFileSync(pubspecPath, 'utf8')
+    
+            # // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0.1`
+            # const version = '${{ inputs.version }}'.replace(/-.*$/, '')
+            const version = '${{ inputs.version }}'
+    
+            const build = '${{ inputs.build }}'
+            let version_string = ''
+            if (build.length > 0) {
+              version_string = `${version}+${build}`
+            } else {
+              version_string = `${version}`
+            }
+            const newPubspec = pubspec.replace(/version: .*/, `version: ${version_string}`)
+            fs.writeFileSync(pubspecPath, newPubspec)
 
-      - name: Upload Artifacts
+      - name: Install Dependencies (linux)
+        shell: sh
+        if: contains(inputs.targets, 'appimage')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y make cmake ninja-build libgtk-3-dev locate libfuse2 libsecret-1-dev libjsoncpp-dev
+          wget -O appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          mv appimagetool /usr/local/bin/
+    
+      - name: Install Dependencies (macos)
+        shell: sh
+        if: contains(inputs.targets, 'dmg')
+        run: |
+          npm install -g appdmg
+
+      - name: Build App for ${{ inputs.platform }}
+        run: |
+          echo "Building for platform: ${{ inputs.platform }}"
+          echo "Version: ${{ inputs.version }}"
+          echo "Build ID: ${{ inputs.build }}"
+          echo "Targets: ${{ inputs.targets }}"
+
+          dart pub global activate flutter_distributor
+
+          flutter_distributor package --flutter-extra-args="${{ inputs.flutter-extra-args }}" --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
+      - name: Upload build artifacts
+        if: inputs.artifacts != ''
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.platform }}
