@@ -15,7 +15,7 @@ on:
       artifact-name:
         type: string
         description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
-        required: true
+        required: false
       artifact-path:
         type: string
         description: 'Comma separated list of file to deploy (inside of the artifact)'
