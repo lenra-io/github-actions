@@ -54,9 +54,10 @@ jobs:
         env:
           SERVICE_ACCOUNT_JSON: ${{ secrets.service-account-json }}
         run: |
+          dart pub global activate fastforge
           artifact_path="$(realpath ./artifacts/${{ inputs.artifact-path }})"
           echo "Deploying to ${{ inputs.store }} using flutter_distributor..."
-          release_cmd="flutter_distributor publish \
+          release_cmd="fastforge publish \
             --targets ${{ inputs.store }} \
             --path $artifact_path"
           if [ "${{ inputs.store }}" = "playstore" ]; then
