@@ -57,26 +57,25 @@ jobs:
             path_args="--path ${{ inputs.path }}"
           fi
           IFS="," read -ra prerelease_branches <<< "${{ inputs.prerelease-branches }}"
-          IFS="," read -ra release_branches <<< "${{ inputs.release-branches }}"
-          current_branch=${{ github.ref_name }}
+          IFS="," read -ra release_branches <<< "${{ inputs.release-branch }}"
+          current_branch="${{ github.ref_name }}"
           must_release=false
           if [[ "$IFS${prerelease_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]] ; then
             must_release=true
             prerelease_args="--prerelease ${current_branch}"
             channel=${current_branch}
-          fi
-          if [[ "$IFS${release_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]]; then
+          elif [[ "$IFS${release_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]]; then
             must_release=true
           fi
           if ${must_release} ; then
-            VERSION=$(~/.cargo/bin/convco version -b $prerelease_args)
+            VERSION=$(convco version -b $prerelease_args)
             echo "Determined version: ${VERSION}"
             tag="$(git tag --list $VERSION)"
             if [ -n "$tag" ] ; then
               if ${{ inputs.changelog-include-hidden-section }} ; then
                 hidden_args="--include-hidden-section"
               fi
-              CHANGELOG=$(~/.cargo/bin/convco changelog $hidden_args -u $VERSION)
+              CHANGELOG=$(convco changelog $hidden_args -u $VERSION)
               echo "version=${VERSION}" >> $GITHUB_OUTPUT
               if [ -n "${channel}" ]; then
                 echo "channel=${channel}" >> $GITHUB_OUTPUT
@@ -88,5 +87,5 @@ jobs:
               echo "Will not release: Version already exist"
             fi
           else
-            echo "Will not release: Event not hit a release_branches or prerelease_branches"
+            echo "Will not release: Event not hit release_branch or prerelease_branches"
           fi

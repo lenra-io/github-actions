@@ -60,6 +60,8 @@ jobs:
       branches-total: ${{ steps.coverage.outputs.branches-total }}
       branches-percentage: ${{ steps.coverage.outputs.branches-percentage }}
     steps:
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
       - name: Download coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -75,9 +77,9 @@ jobs:
               echo "${BASH_REMATCH[1]}-total=${BASH_REMATCH[4]}" >> $GITHUB_OUTPUT
               echo "${BASH_REMATCH[1]}-percentage=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
             fi
-          done < <(lcov --summary ${{ inputs.artifact-path }})
+          done < <(lcov --summary coverage/${{ inputs.artifact-path }})
       - name: Check coverage report data
-        if: ${{ inputs.min-lines-coverage }}
+        if: inputs.min-lines-coverage != ''
         run: |
           if [[ ${{ steps.coverage.outputs.lines-percentage }} -lt ${{ inputs.min-lines-coverage }} ]]; then
             echo "Coverage is below the minimum required (${{ inputs.min-lines-coverage }}%): ${{ steps.coverage.outputs.lines-percentage }}%"

@@ -25,19 +25,19 @@ on:
         description: 'Release type (one of: "production", "qa", "beta", "alpha")'
         required: false
     secrets:
-      playstore-service-account-json:
+      PLAYSTORE_SERVICE_ACCOUNT_JSON:
         description: 'Service account JSON for PlayStore deployment'
         required: false
-      appstore-username:
-        description: 'Apple AppStore Username (require appstore-password)'
+      APPSTORE_USERNAME:
+        description: 'Apple AppStore Username (require APPSTORE_PASSWORD)'
         required: false
-      appstore-password: 
+      APPSTORE_PASSWORD: 
         description: 'Apple AppStore Password'
         required: false
-      appstoore-apikey: 
-        description: 'Apple AppStore API Key (require appstore-apiissuer)'
+      APPSTOORE_APIKEY: 
+        description: 'Apple AppStore API Key (require APPSTORE_APIISSUER)'
         required: false
-      appstore-apiissuer:
+      APPSTORE_APIISSUER:
         description: 'Apple AppStore API Issuer'
         required: false
 jobs:
@@ -52,7 +52,11 @@ jobs:
 
       - name: Deploy App using flutter_distributor
         env:
-          SERVICE_ACCOUNT_JSON: ${{ secrets.service-account-json }}
+          SERVICE_ACCOUNT_JSON: ${{ secrets.PLAYSTORE_SERVICE_ACCOUNT_JSON }}
+          APPSTORE_USERNAME: ${{ secrets.APPSTORE_USERNAME }}
+          APPSTORE_PASSWORD: ${{ secrets.APPSTORE_PASSWORD }}
+          APPSTOORE_APIKEY: ${{ secrets.APPSTOORE_APIKEY }}
+          APPSTORE_APIISSUER: ${{ secrets.APPSTORE_APIISSUER }}
         run: |
           dart pub global activate fastforge
           artifact_path="$(realpath ./artifacts/${{ inputs.artifact-path }})"

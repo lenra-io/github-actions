@@ -99,18 +99,12 @@ jobs:
               conclusion = conclusion_input;
             }
 
-            let url;
-            if(url_input) {
-              url = url_input;
-            }
-
             // Extract owner and repo from the GITHUB_REPOSITORY environment variable
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 
             // Create the Check Run
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
             api_url = check_run_id ? 'POST /repos/{owner}/{repo}/check-runs' : 'PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}';
-            const checkRunResponse = await octokit.request(api_url, {
+            const checkRunResponse = await github.request(api_url, {
               owner,
               repo,
               check_run_id,

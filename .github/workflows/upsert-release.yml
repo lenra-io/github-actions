@@ -5,15 +5,17 @@ on:
   workflow_call:
     inputs:
       version:
+        type: string
         description: 'Release tag (e.g., 1.0.0)'
         required: true
       changelog:
+        type: string
         description: 'Changelog text (only used when creating a release)'
         required: false
       artifact-name:
         type: string
         description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
-        required: true
+        required: false
       artifact-path:
         type: string
         description: 'Comma separated list of file to deploy (inside of the artifact)'

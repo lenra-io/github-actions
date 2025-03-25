@@ -6,15 +6,18 @@ branding:
   icon: package
 
 inputs:
-  working-directory:
+  path:
     description: The working directory to run the command in
     required: false
-    default: '.'
+    default: './android/app/key.properties'
   upload-key-store:
     description: The keystore file to sign the app
     required: true
   upload-key-name:
     description: The name of the key to sign the app
+    required: true
+  upload-store-password:
+    description: The password of the keystore
     required: true
   upload-key-password:
     description: The password of the key to sign the app
@@ -23,7 +26,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - name: Create ${{ inputs.working-directory}}/android/key.properties
+  - name: Create ${{ inputs.path }}
     if: ${{ inputs.upload-key-store }}
     shell: bash
     env:
@@ -31,9 +34,9 @@ runs:
     run: |
       keystore_file="$(mktemp)"
 
-      echo "storeFile=$keystore_file" >> ${{ inputs.working-directory}}/android/key.properties
-      echo "keyAlias=${{ inputs.upload-key-name }}" >> ${{ inputs.working-directory}}/android/key.properties
-      echo "storePassword=${{ inputs.upload-key-password }}" >> ${{ inputs.working-directory}}/android/key.properties
-      echo "keyPassword=${{ inputs.upload-key-password }}" >> ${{ inputs.working-directory}}/android/key.properties
+      echo "storeFile=$keystore_file" >> ${{ inputs.path}}
+      echo "keyAlias=${{ inputs.upload-key-name }}" >> ${{ inputs.path }}
+      echo "storePassword=${{ inputs.upload-store-password }}" >> ${{ inputs.path }}
+      echo "keyPassword=${{ inputs.upload-key-password }}" >> ${{ inputs.path }}
 
       echo "$KEYSTORE" | base64 -d > $keystore_file

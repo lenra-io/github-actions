@@ -26,11 +26,11 @@ on:
         description: 'Channel of Flutter to use'
         required: false
         default: 'stable'
-      flutter-extra-args:
+      flutter-build-args:
         type: string
-        description: 'Comma separated list of flutter build extra args (e.g., release,verbose,obfuscate,split-per-abi)'
+        description: 'Comma separated list of flutter build extra args (e.g., release,verbose,obfuscate,split-debug-info=.debug,split-per-abi)'
         required: false
-        default: 'release,obfuscate'
+        default: 'release'
       platform:
         type: string
         description: 'Target platform'
@@ -48,15 +48,22 @@ on:
         description: 'Glob pattern for build artifacts'
         required: false
     secrets:
-      upload-key-store:
+      UPLOAD_KEY_STORE:
         description: 'Keystore file content for Android signing'
         required: false
-      upload-key-name:
+      UPLOAD_KEY_NAME:
         description: 'Alias name for the Android key'
         required: false
-      upload-key-password:
+      UPLOAD_KEY_PASSWORD:
         description: 'Password for the Android key'
         required: false
+      UPLOAD_STORE_PASSWORD:
+        description: 'Password for the Android keystore'
+        required: false
+    outputs:
+      artifact-name: 
+        description: 'Name of the artifact produced by the flutter build'
+        value: ${{ jobs.build.outputs.artifact-name }}
 
 jobs:
   build:
@@ -64,6 +71,8 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     runs-on: ${{ inputs.runner }}
+    outputs:
+      artifact-name: ${{ steps.build.outputs.artifact-name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,25 +90,34 @@ jobs:
         if: inputs.platform == 'android'
         uses: lenra-io/github-actions/jobs/android-keystore@main
         with:
-          path: './android/app/key.properties'
-          upload-key-store: ${{ secrets.upload-key-store }}
-          upload-key-name: ${{ secrets.upload-key-name }}
-          upload-store-password: ${{ secrets.upload-key-password }}
-          upload-key-password: ${{ secrets.upload-key-password }}
+          path: '${{ inputs.working-directory }}/android/key.properties'
+          upload-key-store: ${{ secrets.UPLOAD_KEY_STORE }}
+          upload-key-name: ${{ secrets.UPLOAD_KEY_NAME }}
+          upload-store-password: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          upload-key-password: ${{ secrets.UPLOAD_KEY_PASSWORD }}
 
       - name: Update version
         uses: actions/github-script@v7
         with:
+          debug: true
           script: |
             // Update pubspec.yaml inplace
             const fs = require('fs')
             const path = require('path')
-            const pubspecPath = path.join(process.env.GITHUB_WORKSPACE, 'pubspec.yaml')
+            const pubspecPath = path.join('${{ inputs.working-directory}}', 'pubspec.yaml')
             // edit version and build number
-            const pubspec = fs.readFileSync(pubspecPath, 'utf8')
+            if (!fs.existsSync(pubspecPath)) {
+              throw new Error(`pubspec.yaml file not found at ${pubspecPath}`);
+            }
+            let pubspec;
+            try {
+              pubspec = fs.readFileSync(pubspecPath, 'utf8');
+            } catch (err) {
+              throw new Error(`Failed to read pubspec.yaml: ${err.message}`);
+            }
     
-            # // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0.1`
-            # const version = '${{ inputs.version }}'.replace(/-.*$/, '')
+            // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0.1`
+            // const version = '${{ inputs.version }}'.replace(/-.*$/, '')
             const version = '${{ inputs.version }}'
     
             const build = '${{ inputs.build }}'
@@ -110,7 +128,11 @@ jobs:
               version_string = `${version}`
             }
             const newPubspec = pubspec.replace(/version: .*/, `version: ${version_string}`)
-            fs.writeFileSync(pubspecPath, newPubspec)
+            try {
+              fs.writeFileSync(pubspecPath, newPubspec);
+            } catch (err) {
+              throw new Error(`Failed to write to pubspec.yaml: ${err.message}`);
+            }
 
       - name: Install Dependencies (linux)
         shell: sh
@@ -128,7 +150,8 @@ jobs:
         run: |
           npm install -g appdmg
 
-      - name: Build App for ${{ inputs.platform }}
+      - id: build
+        name: Build App for ${{ inputs.platform }}
         run: |
           echo "Building for platform: ${{ inputs.platform }}"
           echo "Version: ${{ inputs.version }}"
@@ -137,10 +160,22 @@ jobs:
 
           dart pub global activate fastforge
 
-          fastforge package --flutter-extra-args="${{ inputs.flutter-extra-args }}" --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
+          flutter_build_args=''
+          if [ -n "${{ inputs.flutter-build-args }}" ]; then
+            flutter_build_args='--flutter-build-args=${{ inputs.flutter-build-args }}'
+          fi
+          fastforge package $flutter_build_args --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
+          
+          if [ -n "${{ inputs.artifacts }}" ]; then
+            # Format artifact name
+            TARGETS=$(echo "${{ inputs.targets }}" | tr ',' '-')
+            ARTIFACT_NAME="${{ inputs.platform }}-${TARGETS}"
+            echo "artifact-name=$ARTIFACT_NAME" >> $GITHUB_OUTPUTS
+          fi
+
       - name: Upload build artifacts
         if: inputs.artifacts != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.platform }}
-          path: ${{ inputs.artifacts }}
+          name: ${{ steps.build.outputs.artifact-name }}
+          path: ${{inputs.working-directory}}/${{ inputs.artifacts }}
