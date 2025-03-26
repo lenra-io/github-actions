@@ -17,7 +17,7 @@ jobs:
     needs: test
     uses: lenra-io/github-actions/.github/workflows/coverage-report.yml@main
     with:
-      artifact-name: ${{ needs.test.outputs.artifact-name }}
-      artifact-path: lcov.info
+      with-artifact-name: ${{ needs.test.outputs.artifact-name }}
+      with-artifact-path: lcov.info
       min-lines-coverage: 20
 ```
