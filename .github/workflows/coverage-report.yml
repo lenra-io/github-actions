@@ -4,11 +4,11 @@ name: Coverage Report
 on:
   workflow_call:
     inputs:
-      artifact-name:
+      with-artifact-name:
         type: string
         description: Coverage report artifact name
         required: true
-      artifact-path:
+      with-artifact-path:
         type: string
         description: Path to the coverage report artifact
         required: false
