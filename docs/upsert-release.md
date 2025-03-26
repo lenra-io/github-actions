@@ -22,6 +22,6 @@ jobs:
     with:
       version: "v1.0.0"
       changelog: "This is changelogs"
-      artifact-name: 'release'
-      artifact-path: 'README.md'
+      with-artifact-name: 'release'
+      with-artifact-path: 'README.md'
 ```
