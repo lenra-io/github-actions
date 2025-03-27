@@ -8,11 +8,11 @@ on:
         type: string
         description: 'The target store (playstore or appstore)'
         required: true
-      artifact-name:
+      with-artifact-name:
         type: string
         description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
         required: true
-      artifact-path:
+      with-artifact-path:
         type: string
         description: 'Path to the build file to deploy (inside of the artifact)'
         required: true
@@ -34,7 +34,7 @@ on:
       APPSTORE_PASSWORD: 
         description: 'Apple AppStore Password'
         required: false
-      APPSTORE_APIKEY: 
+      APPSTOORE_APIKEY: 
         description: 'Apple AppStore API Key (require APPSTORE_APIISSUER)'
         required: false
       APPSTORE_APIISSUER:
@@ -47,7 +47,7 @@ jobs:
       - name: Checkout repository
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ inputs.with-artifact-name }}
           path: ./artifacts/
 
       - name: Deploy App using flutter_distributor
@@ -59,7 +59,7 @@ jobs:
           APPSTORE_APIISSUER: ${{ secrets.APPSTORE_APIISSUER }}
         run: |
           dart pub global activate fastforge
-          artifact_path="$(realpath ./artifacts/${{ inputs.artifact-path }})"
+          artifact_path="$(realpath ./artifacts/${{ inputs.with-artifact-path }})"
           echo "Deploying to ${{ inputs.store }} using flutter_distributor..."
           release_cmd="fastforge publish \
             --targets ${{ inputs.store }} \
