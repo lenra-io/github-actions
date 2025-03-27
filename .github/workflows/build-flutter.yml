@@ -43,7 +43,11 @@ on:
         type: string
         description: 'Runner label (e.g., ubuntu-latest, macos-latest, windows-latest)'
         required: true
-      artifacts:
+      artifact-name:
+        type: string
+        description: 'Give a name for build artifacts'
+        required: false
+      artifact-path:
         type: string
         description: 'Glob pattern for build artifacts'
         required: false
@@ -60,10 +64,6 @@ on:
       UPLOAD_STORE_PASSWORD:
         description: 'Password for the Android keystore'
         required: false
-    outputs:
-      artifact-name: 
-        description: 'Name of the artifact produced by the flutter build'
-        value: ${{ jobs.build.outputs.artifact-name }}
 
 jobs:
   build:
@@ -71,8 +71,6 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     runs-on: ${{ inputs.runner }}
-    outputs:
-      artifact-name: ${{ steps.build.outputs.artifact-name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -165,17 +163,10 @@ jobs:
             flutter_build_args='--flutter-build-args=${{ inputs.flutter-build-args }}'
           fi
           fastforge package $flutter_build_args --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
-          
-          if [ -n "${{ inputs.artifacts }}" ]; then
-            # Format artifact name
-            TARGETS=$(echo "${{ inputs.targets }}" | tr ',' '-')
-            ARTIFACT_NAME="${{ inputs.platform }}-${TARGETS}"
-            echo "artifact-name=$ARTIFACT_NAME" >> $GITHUB_OUTPUTS
-          fi
 
       - name: Upload build artifacts
-        if: inputs.artifacts != ''
+        if: inputs.artifacts-name != '' && inputs.artifacts-path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.build.outputs.artifact-name }}
-          path: ${{inputs.working-directory}}/${{ inputs.artifacts }}
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
