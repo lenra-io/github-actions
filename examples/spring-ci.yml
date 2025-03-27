@@ -1,0 +1,85 @@
+name: Spring Boot CI/CD
+
+on:
+  push:
+    branches: 
+      - main
+      - beta
+    paths:
+      - 'server/**'
+      - '!server/**/*.md'
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+    paths:
+      - 'server/**'
+      - '!server/**/*.md'
+  workflow_dispatch:
+
+permissions: 
+  contents: write
+  packages: write
+
+jobs:
+  get-version:
+    name: Get Version
+    uses: lenra-io/github-actions/.github/workflows/get-version.yml@main
+    with:
+      path: server
+      changelog-include-hidden-sections: true
+      
+  build:
+    name: Build Spring Boot App
+    needs: get-version
+    uses: lenra-io/github-actions/.github/workflows/build-springboot.yml@main
+    with:
+      working-directory: server
+      artifact-name: server
+      envs: |
+        VERSION=${{ needs.get-version.outputs.version || '0.0.0' }}
+    secrets: 
+      envs: | 
+        SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+
+  check:
+    name: Check Spring Boot Code
+    uses: lenra-io/github-actions/.github/workflows/check-springboot.yml@main
+    with:
+      working-directory: server
+
+  test:      
+    name: Test Spring Boot App
+    uses: lenra-io/github-actions/.github/workflows/test-springboot.yml@main
+    with:
+      working-directory: server
+      artifact-name: coverage-report
+      
+  release-github:
+    name: Release GitHub
+    needs: [get-version, build, check]
+    if: needs.get-version.outputs.version != ''
+    # Call the reusable workflow to create release to GitHub.
+    uses: lenra-io/github-actions/.github/workflows/upsert-release.yml@main
+    with:
+      version: ${{ needs.get-version.outputs.version }}
+      changelog: ${{ needs.get-version.outputs.changelog }}
+      prerelease: ${{ needs.get-version.outputs.channel != '' }}
+      
+  generate-version-names:
+    name: Generate version names
+    needs: get-version
+    if: needs.get-version.outputs.version != ''
+    uses: lenra-io/github-actions/.github/workflows/generate-version-names.yml@main
+    with:
+      version: ${{ needs.get-version.outputs.version }}
+      template: ghcr.io/${{ github.repository }}/server:[:version:]
+
+  build-docker:
+    name: Build docker image
+    needs: [generate-version-names, build, check]
+    uses: lenra-io/github-actions/.github/workflows/build-docker.yml@main
+    with:
+      working-directory: server
+      tags: ${{ needs.generate-version-names.outputs.tags }}
+      dockerfile: ci.Dockerfile
+      with-artifact-name: server
+      with-artifact-path: build/libs/
