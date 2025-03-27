@@ -22,12 +22,12 @@ on:
 
 jobs:
   version:
-    uses: shiipou/github-actions/.github/workflows/get-version.yml@main
+    uses: lenra-io/github-actions/.github/workflows/get-version.yml@main
     
   build:
     needs: version
     if: needs.version.outputs.version != ''
-    uses: shiipou/github-actions/.github/workflows/build-springboot.yml@main
+    uses: lenra-io/github-actions/.github/workflows/build-springboot.yml@main
     with:
       version: ${{ needs.version.outputs.version }}
 ```
