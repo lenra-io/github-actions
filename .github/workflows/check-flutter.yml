@@ -20,7 +20,7 @@ on:
         default: 'stable'
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     defaults:
       run:
