@@ -34,7 +34,7 @@ on:
       APPSTORE_PASSWORD: 
         description: 'Apple AppStore Password'
         required: false
-      APPSTOORE_APIKEY: 
+      APPSTORE_APIKEY: 
         description: 'Apple AppStore API Key (require APPSTORE_APIISSUER)'
         required: false
       APPSTORE_APIISSUER:
@@ -55,7 +55,7 @@ jobs:
           SERVICE_ACCOUNT_JSON: ${{ secrets.PLAYSTORE_SERVICE_ACCOUNT_JSON }}
           APPSTORE_USERNAME: ${{ secrets.APPSTORE_USERNAME }}
           APPSTORE_PASSWORD: ${{ secrets.APPSTORE_PASSWORD }}
-          APPSTOORE_APIKEY: ${{ secrets.APPSTOORE_APIKEY }}
+          APPSTORE_APIKEY: ${{ secrets.APPSTORE_APIKEY }}
           APPSTORE_APIISSUER: ${{ secrets.APPSTORE_APIISSUER }}
         run: |
           dart pub global activate fastforge
