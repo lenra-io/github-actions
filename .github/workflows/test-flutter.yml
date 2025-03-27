@@ -18,10 +18,15 @@ on:
         description: 'Channel of Flutter to use'
         required: false
         default: 'stable'
-    outputs:
       artifact-name:
-        description: 'Coverage report artifact name'
-        value: ${{ jobs.test.outputs.artifact-name }}
+        type: string
+        description: 'Give artifact name for coverage report'
+        required: false
+      artifact-path:
+        type: string
+        description: 'Coverage report path to upload as artifact'
+        required: false
+        default: 'coverage/lcov.info'
 
 jobs:
   test:
@@ -29,8 +34,6 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-    outputs:
-      artifact-name: ${{ steps.test.outputs.artifact-name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,8 +54,9 @@ jobs:
           GENERATED_COVERAGE_NAME="$(mktemp -u -t coverage-XXXX)"
           echo "artifact-name=${GENERATED_COVERAGE_NAME}" >> $GITHUB_OUTPUT
           
-      - name: Upload ${{ steps.test.outputs.artifact-name}} artifact
+      - name: Upload artifact
+        if: inputs.artifact-name != ''
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.test.outputs.artifact-name }}
-          path: coverage/
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
