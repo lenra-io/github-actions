@@ -1,0 +1,49 @@
+name: Generate version names
+# description: Generate comma separated list of tags for a version given as input. Ready to use with docker.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: 'Semantic version to generate version names for'
+        required: true
+      template:
+        type: string
+        description: 'Template for the tags (use [:version:] as a placeholder for the version)'
+        required: false
+        default: '[:version:]'
+    outputs:
+      tags:
+        description: 'Comma-separated list of generated tags'
+        value: ${{ jobs.generate-version-names.outputs.tags }}
+
+jobs:
+  generate-version-names:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.generate-version-names.outputs.tags }}
+    steps:
+      - name: Generate version names
+        id: generate-version-names
+        run: |
+          version="${{ inputs.version }}"
+          template="${{ inputs.template }}"
+
+          # Generate full version tag
+          tags="${template//\[:version:\]/$version}"
+
+          # Generate partial version tags if not a prerelease
+          if [[ ! "$version" =~ "-" ]]; then
+              major_minor=$(echo "$version" | cut -d. -f1,2)
+              major=$(echo "$version" | cut -d. -f1)
+              tags="$tags,${template//\[:version:\]/$major_minor},${template//\[:version:\]/$major}"
+          else
+              # For prerelease, generate only the major.minor-prerelease tag
+              major_minor_prerelease=$(echo "$version" | grep -oE '^[0-9]+\.[0-9]+-[^\.]+')
+              if [[ -n "$major_minor_prerelease" ]]; then
+                  tags="$tags,${template//\[:version:\]/$major_minor_prerelease}"
+              fi
+          fi
+
+          echo "tags=$tags" >> $GITHUB_OUTPUT
