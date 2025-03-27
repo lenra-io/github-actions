@@ -34,7 +34,7 @@ on:
       APPSTORE_PASSWORD: 
         description: 'Apple AppStore Password'
         required: false
-      APPSTOORE_APIKEY: 
+      APPSTORE_APIKEY: 
         description: 'Apple AppStore API Key (require APPSTORE_APIISSUER)'
         required: false
       APPSTORE_APIISSUER:
