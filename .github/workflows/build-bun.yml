@@ -1,0 +1,60 @@
+name: Build Bun App
+# description: Build a Bun application and generate an artifact.
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: 'Current Working directory (Useful for mono-repo)'
+        required: false
+        default: '.'
+      bun-version:
+        type: string
+        description: 'Version of Java to use'
+        required: false
+        default: 'latest'
+      artifact-name:
+        type: string
+        description: 'Give generated artifact a name'
+        required: false
+      artifact-path:
+        type: string
+        description: 'Path to the generated artifact to upload'
+        required: false
+        default: 'build/libs/*.jar'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ inputs.bun-version }}
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: ${{inputs.working-directory}}/node_modules
+          key: ${{ runner.os }}-bun-web-${{ hashFiles(format('{0}/bun.lock', inputs.working-directory)) }}
+          restore-keys: ${{ runner.os }}-bun-web-
+
+      - name: Install Bun dependencies
+        run: bun install
+
+      - name: Build with Gradle
+        run: bun run build
+
+      - name: Upload build artifacts
+        if: inputs.artifact-name != '' && inputs.artifact-path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
