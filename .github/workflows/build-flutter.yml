@@ -160,7 +160,7 @@ jobs:
           if [ -n "${{ inputs.flutter-build-args }}" ]; then
             flutter_build_args='--flutter-build-args=${{ inputs.flutter-build-args }}'
           fi
-          fastforge package $flutter_build_args --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
+          fastforge package --skip-clean $flutter_build_args --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
 
       - name: Upload build artifacts
         if: inputs.artifact-name != '' && inputs.artifact-path != ''
