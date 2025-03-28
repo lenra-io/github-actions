@@ -1,0 +1,44 @@
+name: Check Bun App
+# description: Run all test for a bun application.
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: 'Current Working directory (Useful for mono-repo)'
+        required: false
+        default: '.'
+      bun-version:
+        type: string
+        description: 'Version of Java to use'
+        required: false
+        default: 'latest'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ inputs.bun-version }}
+
+      - name: Setup cache
+        uses: actions/cache@v4
+        with:
+          path: ${{inputs.working-directory}}/node_modules
+          key: ${{ runner.os }}-bun-web-${{ hashFiles(format('{0}/bun.lock', inputs.working-directory)) }}
+          restore-keys: ${{ runner.os }}-bun-web-
+
+      - name: Install Bun dependencies
+        run: bun install
+
+      - name: Build with Gradle
+        run: bun test
