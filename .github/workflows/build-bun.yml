@@ -22,7 +22,7 @@ on:
         type: string
         description: 'Path to the generated artifact to upload'
         required: false
-        default: 'build/libs/*.jar'
+        default: 'dist/'
 
 jobs:
   build:
