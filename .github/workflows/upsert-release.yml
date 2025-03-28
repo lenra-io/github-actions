@@ -39,7 +39,7 @@ jobs:
         id: check_release
         run: |
           set +e
-          gh release view "${{ inputs.version }}" > /dev/null 2>&1
+          gh release view "v${{ inputs.version }}" > /dev/null 2>&1
           if [ $? -eq 0 ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
