@@ -57,6 +57,7 @@ jobs:
       - name: Deploy App using fastforge
         env:
           SERVICE_ACCOUNT_JSON: ${{ secrets.PLAYSTORE_SERVICE_ACCOUNT_JSON }}
+          PLAYSTORE_CREDENTIALS: service_account.json
           APPSTORE_USERNAME: ${{ secrets.APPSTORE_USERNAME }}
           APPSTORE_PASSWORD: ${{ secrets.APPSTORE_PASSWORD }}
           APPSTORE_APIKEY: ${{ secrets.APPSTORE_APIKEY }}
