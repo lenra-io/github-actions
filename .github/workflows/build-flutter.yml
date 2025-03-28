@@ -163,7 +163,7 @@ jobs:
           fastforge package $flutter_build_args --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
 
       - name: Upload build artifacts
-        if: inputs.artifacts-name != '' && inputs.artifacts-path != ''
+        if: inputs.artifact-name != '' && inputs.artifact-path != ''
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
