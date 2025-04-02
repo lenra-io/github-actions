@@ -40,5 +40,5 @@ jobs:
       - name: Install Bun dependencies
         run: bun install
 
-      - name: Build with Gradle
-        run: npx -y @biomejs/biome check
+      - name: Build with Bun
+        run: bunx @biomejs/biome check src

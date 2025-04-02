@@ -40,5 +40,5 @@ jobs:
       - name: Install Bun dependencies
         run: bun install
 
-      - name: Build with Gradle
+      - name: Build with Bun
         run: bun test
