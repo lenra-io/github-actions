@@ -41,4 +41,4 @@ jobs:
         run: bun install
 
       - name: Build with Bun
-        run: bunx @biomejs/biome check src
+        run: bun run check
