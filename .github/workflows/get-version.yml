@@ -71,11 +71,11 @@ jobs:
           IFS="," read -ra release_branches <<< "${{ inputs.release-branch }}"
           current_branch="${{ github.ref_name }}"
           must_release=false
-          if [[ "$IFS${prerelease_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]] ; then
+          if [[ " ${prerelease_branches[*]} " =~ " ${current_branch} " ]] ; then
             must_release=true
             prerelease_args="--prerelease ${current_branch}"
             channel=${current_branch}
-          elif [[ "$IFS${release_branches[*]}$IFS" =~ "$IFS${current_branch}$IFS" ]]; then
+          elif [[ " ${release_branches[*]} " =~ " ${current_branch} " ]]; then
             must_release=true
           elif ${{ inputs.force }} ; then
             echo "Event not hit release_branch or prerelease_branches, but force is set to True."
