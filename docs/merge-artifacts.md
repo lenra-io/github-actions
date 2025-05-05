@@ -2,8 +2,6 @@
 
 Merge multiple artifacts into a single one.
 
-It will run `bun test` command but with cache and automatic bun setup.
-
 ## How to use
 
 ```yml
