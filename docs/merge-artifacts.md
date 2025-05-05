@@ -38,6 +38,6 @@ jobs:
 | Name | Description | Required | Default |
 |------|-------------|----------|---------|
 | `with-artifacts-names` | Comma-separated list of artifact names to merge | Yes | `.` |
-| `zip-artifacts` | Comma-separated list of bool, set whether to zip the merged artifacts or not | No | `true` |
+| `zip-artifacts` | Comma-separated list of bool, set whether to zip the merged artifacts or not | No | `false` |
 | `artifact-name` | Name of the output merged artifact | Yes |  |
 
