@@ -12,10 +12,10 @@ on:
         required: true
         type: string
       zip-artifacts:
-        description: 'Whether to zip the merged artifacts or not'
+        description: 'Comma-separated list of bool, set whether to zip the merged artifacts or not'
         required: false
         default: false
-        type: boolean
+        type: string
 
 jobs:
   merge-artifacts:
@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Download and merge artifacts
         env:
-          ZIP_ARTIFACTS: ${{ inputs.zip-artifacts }}
+          ZIP_ARTIFACTS: 
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api \
@@ -37,15 +37,17 @@ jobs:
           mkdir -p artifacts
           mkdir -p downloads
           IFS="," read -ra artifacts_names <<< "${{ inputs.with-artifacts-names }}"
+          IFS="," read -ra zip_artifacts <<< "${{ inputs.zip-artifacts }}"
           for i in "${!artifacts_names[@]}"; do
             artifact_name=${artifacts_names[$i]}
             artifact_path=artifacts/${artifact_name}
+            zip_artifact="${zip_artifacts[$i]}"
             download_url=$(jq -r --arg artifact_name "$artifact_name" '.artifacts[] | select(.name == $artifact_name) | .archive_download_url' artifacts.json)
             if [ -n "$download_url" ]; then
               echo "Downloading artifact: $artifact_name to $artifact_path"
               mkdir -p "$artifact_path"
               curl -L -o "downloads/$artifact_name.zip" -H "Authorization: Bearer ${GH_TOKEN}" "$download_url"
-              if [[ "${ZIP_ARTIFACTS}" = "true" ]]; then
+              if [[ "${ZIP_ARTIFACTS}" = "true" || "${zip_artifacts[@]" == "true" ]]; then
                 mv "downloads/$artifact_name.zip" "$artifact_path/$artifact_name.zip"
               else
                 unzip -o "$artifact_path/$artifact_name.zip" -d "$artifact_path"
