@@ -83,6 +83,7 @@ jobs:
           if [ -n "${{ inputs.with-artifact-path }}" ]; then
             IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
             artifacts_arg="artifacts/${artifacts[@]}"
+            echo "Artifacts to upload: $(ls -pAR artifacts/${artifacts})"
           fi
           
           prerelease_args=''
