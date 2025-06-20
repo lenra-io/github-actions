@@ -80,8 +80,9 @@ jobs:
         if: steps.check_release.outputs.exists == 'false'
         run: |
           artifact_arg=''
-          if [ -n "${{ inputs.artifact-path }}" ]; then
-            artifact_arg="artifacts/${{ inputs.with-artifact-path }}"
+          if [ -n "${{ inputs.with-artifact-path }}" ]; then
+            IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
+            artifacts_arg="artifacts/${artifacts[@]}"
           fi
           
           prerelease_args=''
