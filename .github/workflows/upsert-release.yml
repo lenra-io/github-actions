@@ -96,8 +96,9 @@ jobs:
             --repo ${{ github.repository }} \
             -t "v${{ inputs.version }}" \
             $prerelease_args \
-            -F <(echo "${{ inputs.changelog }}") \
-            $artifact_arg
+            -F <(echo "${{ inputs.changelog }}")
+
+          gh release upload "v${{ inputs.version }}" $artifacts_arg --clobber --repo ${{ github.repository }}
       
       - name: Update release (if already exists)
         if: steps.check_release.outputs.exists == 'true'
