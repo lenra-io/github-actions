@@ -7,11 +7,11 @@ on:
       with-artifact-name:
         type: string
         description: Coverage report artifact name, can't be used with with-artifact-ids
-        required: true
+        required: false
       with-artifact-ids:
         type: string
         description: Coverage report artifact ids, can't be used with with-artifact-name
-        required: true
+        required: false
       with-artifact-path:
         type: string
         description: Path to the coverage report artifact

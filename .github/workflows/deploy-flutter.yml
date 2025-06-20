@@ -11,11 +11,11 @@ on:
       with-artifact-name:
         type: string
         description: 'Name for the build artifact to download (e.g., android-aab or ios-ipa), can''t be used with with-artifact-ids'
-        required: true
+        required: false
       with-artifact-ids:
         type: string
         description: 'Comma separated list of ids of the builds artifact to download, can''t be used with with-artifact-name'
-        required: true
+        required: false
       with-artifact-unzip:
         type: string
         description: 'Comma separated list of ids or name of downloaded artifact that will be unzip. Default to all artifacts'
