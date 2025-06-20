@@ -13,7 +13,7 @@ on:
 jobs:
   build:
     name: Build Spring Boot App
-    uses: shiipou/github-actions/.github/workflows/build-springboot.yml@main
+    uses: lenra-io/github-actions/.github/workflows/build-springboot.yml@main
     with:
       working-directory: server
       artifact-name: server

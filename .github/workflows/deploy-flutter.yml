@@ -10,12 +10,26 @@ on:
         required: true
       with-artifact-name:
         type: string
-        description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
+        description: 'Name for the build artifact to download (e.g., android-aab or ios-ipa), can''t be used with with-artifact-ids'
         required: true
+      with-artifact-ids:
+        type: string
+        description: 'Comma separated list of ids of the builds artifact to download, can''t be used with with-artifact-name'
+        required: true
+      with-artifact-unzip:
+        type: string
+        description: 'Comma separated list of ids or name of downloaded artifact that will be unzip. Default to all artifacts'
+        required: false
+        default: '*'
       with-artifact-path:
         type: string
         description: 'Path to the build file to deploy (inside of the artifact)'
         required: true
+      with-artifact-merge:
+        type: boolean
+        description: 'Whenever to download multiple artifacts into one same folder'
+        required: false
+        default: false
       package-name:
         type: string
         description: 'The package name of the app'
@@ -46,10 +60,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/download-artifact@v4
+        uses: shiipou/download-artifact@main
         with:
           name: ${{ inputs.with-artifact-name }}
+          artifact-ids: ${{ inputs.with-artifact-ids }}
+          unzip: ${{ inputs.with-artifact-unzip }}
           path: ./artifacts/
+          merge-multiple: ${{ inputs.with-artifact-merge }}
       - name: Setup Flutter Environment
         uses: subosito/flutter-action@v2.18.0
         with:

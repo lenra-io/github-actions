@@ -19,12 +19,26 @@ on:
         default: false
       with-artifact-name:
         type: string
-        description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
+        description: 'Name for the build artifact to download (e.g., android-aab or ios-ipa), can''t be used with with-artifact-ids'
         required: false
+      with-artifact-ids:
+        type: string
+        description: 'Comma separated list of ids of the builds artifact to download, can''t be used with with-artifact-name'
+        required: false
+      with-artifact-unzip:
+        type: string
+        description: 'Comma separated list of ids or name of downloaded artifact that will be unzip. Default to all artifacts'
+        required: false
+        default: '*'
       with-artifact-path:
         type: string
         description: 'Comma separated list of file to deploy (inside of the artifact)'
         required: false
+      with-artifact-merge:
+        type: boolean
+        description: 'Whether to merge multiple artifacts into one folder'
+        required: false
+        default: false
 
 permissions: 
   contents: write
@@ -54,10 +68,12 @@ jobs:
           set -e
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: shiipou/download-artifact@main
         with:
           name: ${{ inputs.with-artifact-name }}
+          artifact-ids: ${{ inputs.with-artifact-ids }}
           path: artifacts/
+          unzip: ${{ inputs.with-artifact-unzip }}
           merge-multiple: true
 
       - name: Create release (if not exists)

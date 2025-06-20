@@ -16,18 +16,20 @@ on:
         default: 'latest'
       artifact-name:
         type: string
-        description: 'Give generated artifact a name'
+        description: 'Name of the artifact to upload, default: is basename of the artifact if single file, or dirname if multiple files, followed by the OS name'
         required: false
       artifact-path:
         type: string
         description: 'Path to the generated artifact to upload'
         required: false
         default: 'dist/'
-      zip-artifact:
-        type: boolean
-        description: 'Whether to produce a zip artifact alongside the build artifact'
-        required: false
-        default: false
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ steps.artifact-path.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ steps.artifact-path.outputs.artifact-url }}
 
 jobs:
   build:
@@ -54,30 +56,37 @@ jobs:
       - name: Install Bun dependencies
         run: bun install
 
-      - name: Build with Bun
-        run: bun run build
+      - id: build
+        name: Build with Bun
+        run: |
+          bun run build
+          if [ -n "${{ inputs.artifact-path }}" ]; then
+            echo -e "Artifact path is set to '${{ inputs.artifact-path }}.\nIncluding :"
+            ARTIFACT_CONTENT="$(ls -dAp "${{ inputs.artifact-path }}")"
+            echo "$ARTIFACT_CONTENT"
+            if [ -z "${{ inputs.artifact-name }}" ]; then
+              artifact_path="${{ inputs.artifact-path }}"
+              if [ -d "$artifact_path" ]; then
+                echo "Artifact path is a directory, using it as is."
+                artifact_path="$(dirname "$artifact_path")"
+              elif [ -f "$artifact_path" ]; then
+                echo "Artifact path is a file, using it as is."
+                artifact_path="$artifact_path"
+              elif [ "$(ls -A "$artifact_path")" ]; then
+                echo "Artifact is multiple files, using the directory."
+                artifact_path="$(dirname "$artifact_path")"
+              fi
+              ARTIFACT_NAME="${artifact_path}-${{ runner.os }}"
+            else
+              ARTIFACT_NAME="${{ inputs.artifact-name }}"
+            fi
+            echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload build artifacts
-        if: inputs.artifact-name != '' && inputs.artifact-path != ''
-        uses: actions/upload-artifact@v4
+        if: steps.build.outputs.artifact-name != ''
+        id: artifact-path
+        uses: actions/artifact-path@v4
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
-      - id: zip-artifact
-        name: Zip artifact
-        if: inputs.zip-artifact == 'true'
-        run: |
-          filename="${{ inputs.artifact-name }}"
-          zipname="${filename}.zip"
-          tmp_file="$(mktemp -d)/${zipname}"
-          zip -r "${tmp_file}" ${filename}
-          echo "Zipped artifact created: ${tmp_file}"
-          echo "filename=${zipname}" >> $GITHUB_OUTPUT
-          echo "filepath=${tmp_file}" >> $GITHUB_OUTPUT
-      - name: Upload zipped artifact
-        if: inputs.zip-artifact == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.zip-artifact.outputs.filename }}
-          path: ${{ steps.zip-artifact.outputs.filepath }}
-          retention-days: 1
