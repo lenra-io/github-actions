@@ -28,6 +28,13 @@ on:
         description: 'Path to the generated artifact to upload'
         required: false
         default: 'build/reports/tests/test/'
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ jobs.test.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ jobs.test.outputs.artifact-url }}
   
 jobs:
   test:
@@ -35,6 +42,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
     services:
       postgres:
         image: postgres

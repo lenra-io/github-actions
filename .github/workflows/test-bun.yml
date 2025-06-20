@@ -14,6 +14,13 @@ on:
         description: 'Version of Java to use'
         required: false
         default: 'latest'
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ jobs.build.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ jobs.build.outputs.artifact-url }}
 
 jobs:
   build:
@@ -21,7 +28,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@v4
 

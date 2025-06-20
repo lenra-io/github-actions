@@ -26,10 +26,10 @@ on:
     outputs:
       artifact-id:
         description: 'The ID of the uploaded artifact'
-        value: ${{ steps.artifact-path.outputs.artifact-id }}
+        value: ${{ jobs.build.outputs.artifact-id }}
       artifact-url:
         description: 'The URL of the uploaded artifact'
-        value: ${{ steps.artifact-path.outputs.artifact-url }}
+        value: ${{ jobs.build.outputs.artifact-url }}
 
 jobs:
   build:
@@ -37,7 +37,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-
+    outputs:
+      artifact-id: ${{ steps.artifact-path.outputs.artifact-id }}
+      artifact-url: ${{ steps.artifact-path.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -84,7 +86,7 @@ jobs:
           fi
 
       - name: Upload build artifacts
-        if: steps.build.outputs.artifact-name != ''
+        if: steps.build.outputs.artifact-name != '' && inputs.artifact-path != ''
         id: artifact-path
         uses: actions/artifact-path@v4
         with:
