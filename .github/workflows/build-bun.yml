@@ -38,8 +38,8 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     outputs:
-      artifact-id: ${{ steps.artifact-path.outputs.artifact-id }}
-      artifact-url: ${{ steps.artifact-path.outputs.artifact-url }}
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -87,8 +87,8 @@ jobs:
 
       - name: Upload build artifacts
         if: steps.build.outputs.artifact-name != '' && inputs.artifact-path != ''
-        id: artifact-path
-        uses: actions/artifact-path@v4
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
