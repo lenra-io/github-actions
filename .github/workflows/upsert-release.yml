@@ -79,11 +79,7 @@ jobs:
       - name: Create release (if not exists)
         if: steps.check_release.outputs.exists == 'false'
         run: |
-          artifact_arg=''
           if [ -n "${{ inputs.with-artifact-path }}" ]; then
-            IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
-            artifacts_arg="artifacts/${artifacts[@]}"
-            echo "Artifacts to upload: $(ls -pAR artifacts/${artifacts})"
           fi
           
           prerelease_args=''
@@ -98,7 +94,16 @@ jobs:
             $prerelease_args \
             -F <(echo "${{ inputs.changelog }}")
 
-          gh release upload "v${{ inputs.version }}" $artifacts_arg --clobber --repo ${{ github.repository }}
+          if [ -n "${{ inputs.with-artifact-path }}" ]; then
+            IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
+            artifacts_arg=""
+            echo "Artifacts to upload:"
+            for artifact in "${artifacts[@]}"; do
+                artifacts_arg+="artifacts/${artifact} "
+                ls -pAR artifacts/${artifacts}
+            done
+            gh release upload "v${{ inputs.version }}" $artifacts_arg --clobber --repo ${{ github.repository }}
+          fi
       
       - name: Update release (if already exists)
         if: steps.check_release.outputs.exists == 'true'
@@ -106,7 +111,12 @@ jobs:
           echo "Release ${{ inputs.version }} already exists; updating assets..."
           if [ -n "${{ inputs.with-artifact-path }}" ]; then
             IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
-            artifacts_arg="artifacts/${artifacts[@]}"
+            artifacts_arg=""
+            echo "Artifacts to upload:"
+            for artifact in "${artifacts[@]}"; do
+              artifacts_arg="artifacts/${artifacts[@]}"
+              ls -pAR artifacts/${artifacts}
+            done
             gh release upload "v${{ inputs.version }}" $artifacts_arg --clobber --repo ${{ github.repository }}
           else
             echo "No artifact to upload"
