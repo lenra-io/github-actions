@@ -1,0 +1,105 @@
+name: Deploy Flutter App
+# description: Deploy Flutter app to PlayStore or AppStore, can also deploy to any publisher listed in flutter_distributor (https://distributor.leanflutter.dev/getting-started/)
+
+on:
+  workflow_call:
+    inputs:
+      with-artifact-name:
+        type: string
+        description: 'Name for the build artifact to download (e.g., android-aab or ios-ipa), can''t be used with with-artifact-ids'
+        required: false
+      with-artifact-ids:
+        type: string
+        description: 'Comma separated list of ids of the builds artifact to download, can''t be used with with-artifact-name'
+        required: false
+      with-artifact-unzip:
+        type: string
+        description: 'Comma separated list of ids or name of downloaded artifact that will be unzip. Default to all artifacts'
+        required: false
+        default: '*'
+      with-artifact-path:
+        type: string
+        description: 'Path to the build file to deploy (inside of the artifact)'
+        required: true
+      with-artifact-merge:
+        type: boolean
+        description: 'Whenever to download multiple artifacts into one same folder'
+        required: false
+        default: false
+      store:
+        type: string
+        description: 'The store name to deploy the app. (One of: "app_store", "testflight", "play_store", "play_store_internal_app_sharing")'
+      package-name:
+        type: string
+        description: 'The package name of the app'
+        required: false
+      playstore-track:
+        type: string
+        description: 'Release type (one of: "production", "internal", "beta", "alpha")'
+        required: false
+        default: internal
+      release:
+        type: boolean
+        description: 'Release the version now'
+        required: false
+        default: false
+    secrets:
+      SERVICE_ACCOUNT_JSON:
+        description: 'Service account JSON for deployment'
+        required: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: shiipou/download-artifact@main
+        with:
+          name: ${{ inputs.with-artifact-name }}
+          artifact-ids: ${{ inputs.with-artifact-ids }}
+          unzip: ${{ inputs.with-artifact-unzip }}
+          path: ./artifacts/
+          merge-multiple: ${{ inputs.with-artifact-merge }}
+      - name: Deploy App to ${{ inputs.store }}
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          FASTLANE_USER: ${{ secrets.APPSTORE_USERNAME }}
+          FASTLANE_PASSWORD: ${{ secrets.APPSTORE_PASSWORD }}
+        run: |
+          artifact_path="$(realpath ./artifacts/${{ inputs.with-artifact-path }})"
+          file_type="$(echo "${artifact_path##*.}")"
+          echo "Deploying to ${{ inputs.store }}..."
+          release_cmd="fastlane upload_to_${{ inputs.store }}"
+
+          if [ "${{ inputs.store }}" = "play_store" ] || [ "${{ inputs.store }}" = "play_store_internal_app_sharing" ]; then
+            accept_files=("aab" "apk")
+            if [[ ! " ${accept_files[@]} " =~ " ${file_type} " ]]; then
+              >&2 echo "Invalid artifact, ${{ inputs.store }} only accept one of ${accept_files[*]}, got ${file_type} (${artifact_path})"
+              exit 1
+            fi
+            service_account_json=$(mktemp)
+            echo "$SERVICE_ACCOUNT_JSON" > ${service_account_json}
+            
+            release_cmd="${release_cmd} --json_key ${service_account_json} --package_name ${{ inputs.package-name }} --release_type ${release}"
+            if [ -n "${{ inputs.playstore-track }}" ]; then
+              release_cmd="${release_cmd} --track ${{ inputs.playstore-track }}"
+            fi
+            if [ "${{ inputs.release }}" = "false" ]; then
+              release_cmd="${release_cmd} --release_type draft"
+            fi
+
+          elif [ "${{ inputs.store }}" = "appstore" ] || [ "${{ inputs.store }}" = "testflight" ]; then
+            accept_files=("ipa", "pkg")
+            if [[ ! " ${accept_files[@]} " =~ " ${file_type} " ]]; then
+            >&2 echo "Invalid artifact, ${{ inputs.store }} only accept one of ${accept_files[*]}, got ${file_type} (${artifact_path})"
+              exit 1
+            fi
+            service_account_json=$(mktemp)
+            echo "$SERVICE_ACCOUNT_JSON" > ${service_account_json}
+            release_cmd="${release_cmd} api_key_path ${service_account_json} --app_identifier ${{ inputs.package-name }} --ipa ${artifact_path}"
+            if [ "${{ inputs.release }}" = "true" ]; then
+              release_cmd="${release_cmd} --automatic_release"
+            fi
+          fi
+
+          echo "Running: $release_cmd"
+          $release_cmd
