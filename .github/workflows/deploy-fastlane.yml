@@ -60,7 +60,8 @@ jobs:
           path: ./artifacts/
           merge-multiple: ${{ inputs.with-artifact-merge }}
       - uses: ruby/setup-ruby@v1
-      
+        with:
+          ruby-version: '3.3'
       - uses: tashi-iu/setup-fastlane@v1
 
       - name: Deploy App to ${{ inputs.store }}
