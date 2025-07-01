@@ -79,9 +79,6 @@ jobs:
       - name: Create release (if not exists)
         if: steps.check_release.outputs.exists == 'false'
         run: |
-          if [ -n "${{ inputs.with-artifact-path }}" ]; then
-          fi
-          
           prerelease_args=''
           if ${{ inputs.prerelease }} ; then
             prerelease_args='--prerelease'
