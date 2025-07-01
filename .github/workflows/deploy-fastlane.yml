@@ -83,7 +83,7 @@ jobs:
               release_cmd="${release_cmd} --track ${{ inputs.playstore-track }}"
             fi
             if [ "${{ inputs.release }}" = "false" ]; then
-              release_cmd="${release_cmd} --release_type draft"
+              release_cmd="${release_cmd} --release_status draft"
             fi
 
           elif [ "${{ inputs.store }}" = "appstore" ] || [ "${{ inputs.store }}" = "testflight" ]; then
