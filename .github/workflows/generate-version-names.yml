@@ -40,8 +40,8 @@ jobs:
               tags="$tags,${template//\[:version:\]/$major_minor},${template//\[:version:\]/$major}"
           else
               # For prerelease, generate only the major.minor-prerelease tag
-              major_minor_prerelease=$(echo "$version" | grep -oE '^[0-9]+\.[0-9]+-[^\.]+')
-              if [[ -n "$major_minor_prerelease" ]]; then
+              major_minor_prerelease=$(echo "$version" | sed -E 's/^([0-9]+)\.([0-9]+).([0-9]+)-(.+)$/\1.\2-\4/')
+              if [[ "$major_minor_prerelease" != "$version" ]]; then
                   tags="$tags,${template//\[:version:\]/$major_minor_prerelease}"
               fi
           fi
