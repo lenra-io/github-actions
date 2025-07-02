@@ -82,8 +82,10 @@ Each workflow accepts specific inputs and secrets. See individual workflow files
 - `version`: Semantic version string
 - `artifact-name`: Name of the artifacts to produce
 - `artifact-path`: Path to files to upload as artifact
-- `with-artifact-name`: Name of the artifacts to use
+- `with-artifact-name`: Name of the artifacts to use, can't be used with `with-artifact-ids`
+- `with-artifact-ids`: Comma separated list of Ids of the artifacts to use, can't be used with `with-artifact-name`
 - `with-artifact-path`: Path to files in artifact
+- `with-artifact-unzip`: Which artifact to unzip during download. Comma separated list of names, Ids, true, false, or '*'.
 
 ## 📚 Examples
 

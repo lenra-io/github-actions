@@ -36,17 +36,24 @@ on:
       envs:
         description: 'Add extra env variable to the build, one value per line : <name>=<value>'
         required: false
-  
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ jobs.build.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ jobs.build.outputs.artifact-url }}
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-    
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@v4
-
       
       - run: echo "${{ inputs.envs }}" >> .env
       - run: echo "${{ secrets.envs }}" >> .env
@@ -61,7 +68,8 @@ jobs:
       - name: Build with Gradle
         run: gradle build -x test
 
-      - name: Upload build artifacts
+      - id: upload-artifact
+        name: Upload build artifacts
         if: inputs.artifact-name != '' && inputs.artifact-path != ''
         uses: actions/upload-artifact@v4
         with:

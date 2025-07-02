@@ -13,7 +13,7 @@ on:
 jobs:
   test:      
     name: Test Spring Boot App
-    uses: shiipou/github-actions/.github/workflows/test-springboot.yml@main
+    uses: lenra-io/github-actions/.github/workflows/test-springboot.yml@main
     with:
       artifact-name: coverage-report
 ```

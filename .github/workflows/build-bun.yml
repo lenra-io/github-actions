@@ -16,13 +16,20 @@ on:
         default: 'latest'
       artifact-name:
         type: string
-        description: 'Give generated artifact a name'
+        description: 'Name of the artifact to upload, default: is basename of the artifact if single file, or dirname if multiple files, followed by the OS name'
         required: false
       artifact-path:
         type: string
         description: 'Path to the generated artifact to upload'
         required: false
         default: 'dist/'
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ jobs.build.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ jobs.build.outputs.artifact-url }}
 
 jobs:
   build:
@@ -30,7 +37,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
-
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -49,11 +58,36 @@ jobs:
       - name: Install Bun dependencies
         run: bun install
 
-      - name: Build with Bun
-        run: bun run build
+      - id: build
+        name: Build with Bun
+        run: |
+          bun run build
+          if [ -n "${{ inputs.artifact-path }}" ]; then
+            echo -e "Artifact path is set to '${{ inputs.artifact-path }}.\nIncluding :"
+            ARTIFACT_CONTENT="$(ls -dAp "${{ inputs.artifact-path }}")"
+            echo "$ARTIFACT_CONTENT"
+            if [ -z "${{ inputs.artifact-name }}" ]; then
+              artifact_path="${{ inputs.artifact-path }}"
+              if [ -d "$artifact_path" ]; then
+                echo "Artifact path is a directory, using it as is."
+                artifact_path="$(dirname "$artifact_path")"
+              elif [ -f "$artifact_path" ]; then
+                echo "Artifact path is a file, using it as is."
+                artifact_path="$artifact_path"
+              elif [ "$(ls -A "$artifact_path")" ]; then
+                echo "Artifact is multiple files, using the directory."
+                artifact_path="$(dirname "$artifact_path")"
+              fi
+              ARTIFACT_NAME="${artifact_path}-${{ runner.os }}"
+            else
+              ARTIFACT_NAME="${{ inputs.artifact-name }}"
+            fi
+            echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload build artifacts
-        if: inputs.artifact-name != '' && inputs.artifact-path != ''
+        if: steps.build.outputs.artifact-name != '' && inputs.artifact-path != ''
+        id: upload-artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}

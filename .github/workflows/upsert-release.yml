@@ -19,12 +19,26 @@ on:
         default: false
       with-artifact-name:
         type: string
-        description: 'Identifier for the build artifact (e.g., android-aab or ios-ipa)'
+        description: 'Name for the build artifact to download (e.g., android-aab or ios-ipa), can''t be used with with-artifact-ids'
         required: false
+      with-artifact-ids:
+        type: string
+        description: 'Comma separated list of ids of the builds artifact to download, can''t be used with with-artifact-name'
+        required: false
+      with-artifact-unzip:
+        type: string
+        description: 'Comma separated list of ids or name of downloaded artifact that will be unzip. Default to all artifacts'
+        required: false
+        default: '*'
       with-artifact-path:
         type: string
         description: 'Comma separated list of file to deploy (inside of the artifact)'
         required: false
+      with-artifact-merge:
+        type: boolean
+        description: 'Whether to merge multiple artifacts into one folder'
+        required: false
+        default: false
 
 permissions: 
   contents: write
@@ -54,20 +68,17 @@ jobs:
           set -e
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: shiipou/download-artifact@main
         with:
           name: ${{ inputs.with-artifact-name }}
+          artifact-ids: ${{ inputs.with-artifact-ids }}
           path: artifacts/
+          unzip: ${{ inputs.with-artifact-unzip }}
           merge-multiple: true
 
       - name: Create release (if not exists)
         if: steps.check_release.outputs.exists == 'false'
         run: |
-          artifact_arg=''
-          if [ -n "${{ inputs.artifact-path }}" ]; then
-            artifact_arg="artifacts/${{ inputs.with-artifact-path }}"
-          fi
-          
           prerelease_args=''
           if ${{ inputs.prerelease }} ; then
             prerelease_args='--prerelease'
@@ -78,8 +89,18 @@ jobs:
             --repo ${{ github.repository }} \
             -t "v${{ inputs.version }}" \
             $prerelease_args \
-            -F <(echo "${{ inputs.changelog }}") \
-            $artifact_arg
+            -F <(echo "${{ inputs.changelog }}")
+
+          if [ -n "${{ inputs.with-artifact-path }}" ]; then
+            IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
+            artifacts_arg=""
+            echo "Artifacts to upload:"
+            for artifact in "${artifacts[@]}"; do
+                artifacts_arg+="artifacts/${artifact} "
+                ls -pAR artifacts/${artifacts}
+            done
+            gh release upload "v${{ inputs.version }}" $artifacts_arg --clobber --repo ${{ github.repository }}
+          fi
       
       - name: Update release (if already exists)
         if: steps.check_release.outputs.exists == 'true'
@@ -87,7 +108,12 @@ jobs:
           echo "Release ${{ inputs.version }} already exists; updating assets..."
           if [ -n "${{ inputs.with-artifact-path }}" ]; then
             IFS=',' read -r -a artifacts <<< "${{ inputs.with-artifact-path }}"
-            artifacts_arg="artifacts/${artifacts[@]}"
+            artifacts_arg=""
+            echo "Artifacts to upload:"
+            for artifact in "${artifacts[@]}"; do
+              artifacts_arg="artifacts/${artifacts[@]}"
+              ls -pAR artifacts/${artifacts}
+            done
             gh release upload "v${{ inputs.version }}" $artifacts_arg --clobber --repo ${{ github.repository }}
           else
             echo "No artifact to upload"
