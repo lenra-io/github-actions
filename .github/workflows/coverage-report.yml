@@ -88,7 +88,7 @@ jobs:
               echo "${BASH_REMATCH[1]}-total=${BASH_REMATCH[4]}" >> $GITHUB_OUTPUT
               echo "${BASH_REMATCH[1]}-percentage=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
             fi
-          done < <(lcov --summary coverage/${{ inputs.artifact-path }})
+          done < <(lcov --summary coverage/${{ inputs.with-artifact-path }})
       - name: Check coverage report data
         if: inputs.min-lines-coverage != ''
         run: |
