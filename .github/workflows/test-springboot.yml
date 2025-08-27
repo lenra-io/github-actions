@@ -28,6 +28,15 @@ on:
         description: 'Path to the generated artifact to upload'
         required: false
         default: 'build/reports/tests/test/'
+      compose-file:
+        type: string
+        description: 'Path to a composefile to run before running tests'
+        required: false
+      compose-profile:
+        type: string
+        description: 'The profile of the composefile to load'
+        required: false
+        
     outputs:
       artifact-id:
         description: 'The ID of the uploaded artifact'
@@ -45,18 +54,6 @@ jobs:
     outputs:
       artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
       artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -67,12 +64,17 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: ${{ inputs.java-distribution }}
           cache: gradle
-
+          
+      - name: Run compose-file
+        if: inputs.compose-file != ''
+        run: |
+          docker compose up -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }} -d
+          
       - name: Build with Gradle
         env:
-          DATABASE_URL: postgresql://localhost:5432/app
-          DATABASE_USER: app
-          DATABASE_PASSWORD: app
+          DATABASE_URL: postgresql://localhost:5432/reveel
+          DATABASE_USER: reveel
+          DATABASE_PASSWORD: reveel-app
         run: gradle test
 
       - name: Upload build artifacts
@@ -81,3 +83,7 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
+          
+      - name: Stop compose-file
+        if: inputs.compose-file != '' && always()
+        run: docker compose down -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }}

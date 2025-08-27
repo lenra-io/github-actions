@@ -155,7 +155,16 @@ jobs:
         if: contains(inputs.targets, 'dmg')
         run: |
           npm install -g appdmg
-
+          
+      - name: Cache
+        uses: actions/cache@v4.2.3
+        if: inputs.platform == 'android'
+        with:
+          path: /usr/local/lib/android/sdk
+          key: cache-android-sdk
+          enableCrossOsArchive: true
+          save-always: true
+                
       - id: build
         name: Build App for ${{ inputs.platform }}
         run: |
