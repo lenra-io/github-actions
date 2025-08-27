@@ -68,7 +68,7 @@ jobs:
       - name: Run compose-file
         if: inputs.compose-file != ''
         run: |
-          docker compose up -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }} -d
+          docker compose up -f ${{ inputs.compose-file }} --profile ${{ inputs.compose-profile }} -d
           
       - name: Build with Gradle
         run: gradle test
@@ -82,4 +82,4 @@ jobs:
           
       - name: Stop compose-file
         if: inputs.compose-file != '' && always()
-        run: docker compose down -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }}
+        run: docker compose down -f ${{ inputs.compose-file }} --profile ${{ inputs.compose-profile }}
