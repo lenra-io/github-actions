@@ -71,10 +71,6 @@ jobs:
           docker compose up -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }} -d
           
       - name: Build with Gradle
-        env:
-          DATABASE_URL: postgresql://localhost:5432/reveel
-          DATABASE_USER: reveel
-          DATABASE_PASSWORD: reveel-app
         run: gradle test
 
       - name: Upload build artifacts
