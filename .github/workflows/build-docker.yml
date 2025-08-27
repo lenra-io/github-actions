@@ -20,13 +20,27 @@ on:
         default: 'Dockerfile'
       with-artifact-name:
         type: string
-        description: 'Name of the artifact to include in the image'
+        description: 'Name of the artifact to include in the image, can''t be used with with-artifact-ids'
         required: false
+      with-artifact-ids:
+        type: string
+        description: 'Comma separated list of Ids of the artifact to include in the image, can''t be used with with-artifact-name'
+        required: false
+      with-artifact-unzip:
+        type: string
+        description: 'Comma separated list of ids or name of downloaded artifact that will be unzip. Default to all artifacts'
+        required: false
+        default: '*'
       with-artifact-path:
         type: string
         description: 'Where to place the artifacts'
         required: false
         default: 'artifacts/'
+      with-artifact-merge:
+        type: boolean
+        description: 'Whether to merge multiple artifacts into one folder'
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -43,12 +57,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download artifact
-        if: inputs.with-artifact-name != ''
-        uses: actions/download-artifact@v4
+        if: inputs.with-artifact-name != '' || inputs.with-artifact-ids != ''
+        uses: shiipou/download-artifact@main
         with:
           name: ${{ inputs.with-artifact-name }}
+          artifact-ids: ${{ inputs.with-artifact-ids }}
           path: ${{ inputs.working-directory }}/${{ inputs.with-artifact-path }}
-
+          unzip: ${{ inputs.with-artifact-unzip }}
+          merge-multiple: ${{ inputs.with-artifact-merge }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

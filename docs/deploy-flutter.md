@@ -5,7 +5,7 @@
 It can deploy to multiple store :
 
 ```yml
-deploy-playstore:
+  deploy-playstore:
     name: Deploy to PlayStore
     uses: lenra-io/github-actions/.github/workflows/deploy-flutter.yml@main
     with:
@@ -27,6 +27,6 @@ deploy-playstore:
     secrets:
       appstore-username: ${{ secrets.appstore_username }}
       appstore-password: ${{ secrets.appstore_password }}
-      appstoore-apikey: ${{ secrets.appstore_apikey }}
+      appstore-apikey: ${{ secrets.appstore_apikey }}
       appstore-apiissuer: ${{ secrets.appstore_apiissuer }}
 ```

@@ -22,6 +22,6 @@ build-docker:
       working-directory: server
       tags: ${{ needs.generate-version-names.outputs.tags }}
       dockerfile: ci.Dockerfile
-      with-artifact-name: server
+      with-artifact-ids: ${{ needs.build.outputs.artifact-id }}
       with-artifact-path: build/libs/
 ```

@@ -6,13 +6,22 @@ on:
     inputs:
       with-artifact-name:
         type: string
-        description: Coverage report artifact name
-        required: true
+        description: Coverage report artifact name, can't be used with with-artifact-ids
+        required: false
+      with-artifact-ids:
+        type: string
+        description: Coverage report artifact ids, can't be used with with-artifact-name
+        required: false
       with-artifact-path:
         type: string
         description: Path to the coverage report artifact
         required: false
         default: lcov.info
+      with-artifact-merge:
+        type: boolean
+        description: Whether to merge multiple artifacts into one folder
+        required: false
+        default: false
       min-lines-coverage:
         type: number
         description: Minimum percentage of lines covered
@@ -63,10 +72,12 @@ jobs:
       - name: Setup LCOV
         uses: hrishikesh-kadam/setup-lcov@v1
       - name: Download coverage report
-        uses: actions/download-artifact@v4
+        uses: shiipou/download-artifact@main
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ inputs.with-artifact-name }}
+          artifact-ids: ${{ inputs.with-artifact-ids }}
           path: coverage/
+          merge-multiple: ${{ inputs.with-artifact-merge }}
       - name: Parse coverage report
         id: coverage
         run: |
@@ -77,7 +88,7 @@ jobs:
               echo "${BASH_REMATCH[1]}-total=${BASH_REMATCH[4]}" >> $GITHUB_OUTPUT
               echo "${BASH_REMATCH[1]}-percentage=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
             fi
-          done < <(lcov --summary coverage/${{ inputs.artifact-path }})
+          done < <(lcov --summary coverage/${{ inputs.with-artifact-path }})
       - name: Check coverage report data
         if: inputs.min-lines-coverage != ''
         run: |

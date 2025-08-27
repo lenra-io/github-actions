@@ -36,13 +36,24 @@ on:
         type: string
         description: 'The profile of the composefile to load'
         required: false
-
+        
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ jobs.test.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ jobs.test.outputs.artifact-url }}
+  
 jobs:
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -53,15 +64,13 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: ${{ inputs.java-distribution }}
           cache: gradle
+          
       - name: Run compose-file
         if: inputs.compose-file != ''
         run: |
-          docker compose up -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }} -d
+          docker compose -f ${{ inputs.compose-file }}  --profile ${{ inputs.compose-profile }} up -d
+          
       - name: Build with Gradle
-        env:
-          DATABASE_URL: postgresql://localhost:5432/app
-          DATABASE_USER: app
-          DATABASE_PASSWORD: app
         run: gradle test
 
       - name: Upload build artifacts
@@ -70,6 +79,7 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
+          
       - name: Stop compose-file
         if: inputs.compose-file != '' && always()
-        run: docker compose down -f ${{ inputs.compose-file }} --profile ${{ $inputs.compose-profile }}
+        run: docker compose -f ${{ inputs.compose-file }} --profile ${{ inputs.compose-profile }} down 

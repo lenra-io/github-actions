@@ -27,6 +27,13 @@ on:
         description: 'Coverage report path to upload as artifact'
         required: false
         default: 'coverage/lcov.info'
+    outputs:
+      artifact-id:
+        description: 'The ID of the uploaded artifact'
+        value: ${{ jobs.test.outputs.artifact-id }}
+      artifact-url:
+        description: 'The URL of the uploaded artifact'
+        value: ${{ jobs.test.outputs.artifact-url }}
 
 jobs:
   test:
@@ -34,6 +41,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
+    outputs:
+      artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
