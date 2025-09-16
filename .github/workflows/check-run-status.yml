@@ -66,9 +66,8 @@ jobs:
       - name: Set PR custom status
         id: check-run
         uses: actions/github-script@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
+          github-token: ${{ secrets.github-token }}
           script: |
             // Retrieve the input values
             const check_run_id_input = '${{ inputs.check-run-id }}';
