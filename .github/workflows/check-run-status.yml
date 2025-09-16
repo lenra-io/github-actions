@@ -45,13 +45,17 @@ on:
         description: 'The image alt text of the status'
         required: false
         type: string
+    secrets:
+      github-token:
+        description: The Github Token with statuses=write permission, not accessible by integration so use personnal token
+        required: false
     outputs:
       check-run-id:
         description: 'The ID of the check run that was created or updated'
         value: ${{ jobs.update-status.outputs.check-run-id }}
 
 permissions:
-  statuses: write
+  statuses: reread
 
 jobs:
   update-status:
@@ -62,6 +66,8 @@ jobs:
       - name: Set PR custom status
         id: check-run
         uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
           script: |
             // Retrieve the input values
