@@ -55,7 +55,7 @@ on:
         value: ${{ jobs.update-status.outputs.check-run-id }}
 
 permissions:
-  statuses: read
+  statuses: write
 
 jobs:
   update-status:
@@ -84,7 +84,7 @@ jobs:
             const output_image_alt = '${{ inputs.output-image-alt }}';
             
             let check_run_id;
-            if(check_run_id_input) {
+            if(check_run_id_input != 0) {
               check_run_id = parseInt(check_run_id_input);
             }
 
