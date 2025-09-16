@@ -55,7 +55,7 @@ on:
         value: ${{ jobs.update-status.outputs.check-run-id }}
 
 permissions:
-  statuses: reread
+  statuses: read
 
 jobs:
   update-status:
