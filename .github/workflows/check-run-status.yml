@@ -83,8 +83,8 @@ jobs:
             const output_image_url = '${{ inputs.output-image-url }}';
             const output_image_alt = '${{ inputs.output-image-alt }}';
             
-            let check_run_id = 0;
-            if(check_run_id_input) {
+            let check_run_id;
+            if(check_run_id_input != 0) {
               check_run_id = parseInt(check_run_id_input);
             }
 
@@ -109,7 +109,7 @@ jobs:
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 
             // Create the Check Run
-            api_url = check_run_id == 0 ? 'POST /repos/{owner}/{repo}/check-runs' : 'PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}';
+            api_url = check_run_id == undefined ? 'POST /repos/{owner}/{repo}/check-runs' : 'PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}';
             const checkRunResponse = await github.request(api_url, {
               owner,
               repo,
