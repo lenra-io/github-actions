@@ -190,7 +190,7 @@ jobs:
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
         run: |
           certificate_dir="$(mktemp -d)/"
-          echo "${FASTLANE_SIGN_CERT}" > ${certificate_dir}/rempi.crt
+          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.crt
           fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt"
           fastlane sigh --app_identifier fr.rempi.app --adhoc true
         
