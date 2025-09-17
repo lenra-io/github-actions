@@ -177,9 +177,9 @@ jobs:
       - name: Install iOS provisioning profiles
         if: inputs.platform == 'ios'
         env:
-          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
-          FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
-          FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
+          FASTLANE_USER: ${{ secrets.IOS_USER }}
+          FASTLANE_PASSWORD: ${{ secrets.IOS_PASSWORD }}
+          FASTLANE_SESSION: ${{ secrets.IOS_SESSION }}
         run: |
           fastlane cert --development false
           fastlane sigh --app_identifier fr.rempi.app --adhoc true --development false
