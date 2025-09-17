@@ -64,6 +64,15 @@ on:
       UPLOAD_STORE_PASSWORD:
         description: 'Password for the Android keystore'
         required: false
+      IOS_USER:
+        description: 'iOS fastlane auth email'
+        required: false
+      IOS_PASSWORD:
+        description: 'iOS fastlane auth password'
+        required: false
+      IOS_SESSION:
+        description: 'iOS fastlane auth session'
+        required: false
     outputs:
       artifact-id:
         description: 'The ID of the uploaded artifact'
@@ -164,7 +173,17 @@ jobs:
           key: cache-android-sdk
           enableCrossOsArchive: true
           save-always: true
-                
+          
+      - name: Install iOS provisioning profiles
+        if: inputs.platform == 'ios'
+        env:
+          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+          FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
+          FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
+        run: |
+          fastlane cert --development false
+          fastlane sigh --app_identifier fr.rempi.app --adhoc true --development false
+        
       - id: build
         name: Build App for ${{ inputs.platform }}
         run: |
