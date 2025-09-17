@@ -185,7 +185,7 @@ jobs:
           FASTLANE_SESSION: ${{ secrets.IOS_SESSION }}
           FASTLANE_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
-          fastlane cert --development false
+          fastlane cert --development false --force false
           fastlane sigh --app_identifier fr.rempi.app --adhoc true
         
       - id: build
