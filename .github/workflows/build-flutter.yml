@@ -186,7 +186,7 @@ jobs:
           FASTLANE_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
           fastlane cert --development false
-          fastlane sigh --app_identifier fr.rempi.app --adhoc true --development false
+          fastlane sigh --app_identifier fr.rempi.app --adhoc true
         
       - id: build
         name: Build App for ${{ inputs.platform }}
