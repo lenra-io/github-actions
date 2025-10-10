@@ -210,7 +210,7 @@ jobs:
 
           # Download provisioning profile
           fastlane sigh --app_identifier ${{ inputs.ios-app-identifier }} --adhoc true
-        
+
       - id: build
         name: Build App for ${{ inputs.platform }}
         run: |
@@ -219,13 +219,22 @@ jobs:
           echo "Build ID: ${{ inputs.build }}"
           echo "Targets: ${{ inputs.targets }}"
 
-          dart pub global activate fastforge
+          # Parse flutter build args
+          BUILD_ARGS="${{ inputs.flutter-build-args }}"
+          
+          # Parse targets
+          IFS=',' read -ra TARGET_LIST <<< "${{ inputs.targets }}"
+          
+          # Get dependencies
+          flutter pub get
 
-          flutter_build_args=''
-          if [ -n "${{ inputs.flutter-build-args }}" ]; then
-            flutter_build_args='--flutter-build-args=${{ inputs.flutter-build-args }}'
-          fi
-          fastforge package --skip-clean $flutter_build_args --platform ${{ inputs.platform }} --targets ${{ inputs.targets }}
+          # Build for each target
+          for target in "${TARGET_LIST[@]}"; do
+            target=$(echo "$target" | xargs) # trim whitespace
+            echo "Building target: $target"
+            echo "Build command: flutter build $target $BUILD_ARGS"
+            flutter build $target $BUILD_ARGS
+          done
 
       - name: Upload build artifacts
         if: inputs.artifact-name != '' && inputs.artifact-path != ''
