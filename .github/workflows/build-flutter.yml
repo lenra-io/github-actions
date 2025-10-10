@@ -68,20 +68,14 @@ on:
       UPLOAD_STORE_PASSWORD:
         description: 'Password for the Android keystore'
         required: false
-      IOS_USER:
-        description: 'iOS fastlane auth email'
+      IOS_KEYCHAIN:
+        description: 'iOS base64 value that contains the certificates'
         required: false
-      IOS_PASSWORD:
-        description: 'iOS fastlane auth password'
+      IOS_KEYCHAIN_NAME:
+        description: 'iOS Keychain''s name'
         required: false
-      IOS_APP_PASSWORD:
-        description: 'iOS fastlane auth with app specific password'
-        required: false
-      IOS_SESSION:
-        description: 'iOS fastlane auth session'
-        required: false
-      IOS_TEAM_ID:
-        description: 'iOS fastlane team ID'
+      IOS_KEYCHAIN_PASSWORD:
+        description: 'iOS Keychain''s password'
         required: false
       IOS_SIGN_CERT:
         description: 'iOS fastlane signing certificate in base64'
