@@ -51,6 +51,10 @@ on:
         type: string
         description: 'Glob pattern for build artifacts'
         required: false
+      ios-app-identifier:
+        type: string
+        description: 'iOS app identifier/bundle ID for provisioning profile'
+        required: false
     secrets:
       UPLOAD_KEY_STORE:
         description: 'Keystore file content for Android signing'
@@ -189,10 +193,23 @@ jobs:
           FASTLANE_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
         run: |
+          # Create a temporary keychain for CI
+          KEYCHAIN_NAME="fastlane_tmp_keychain"
+          KEYCHAIN_PASSWORD="temp_password_$(date +%s)"
+          
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed s/\"//g)
+          security default-keychain -s "$KEYCHAIN_NAME"
+    
+          # Import certificate
           certificate_dir="$(mktemp -d)/"
-          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.crt
-          fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt"
-          fastlane sigh --app_identifier fr.rempi.app --adhoc true
+          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/app.crt
+          fastlane run import_certificate certificate_path:"${certificate_dir}/app.crt" keychain_name:"$KEYCHAIN_NAME" keychain_password:"$KEYCHAIN_PASSWORD"
+
+          # Download provisioning profile
+          fastlane sigh --app_identifier ${{ inputs.ios-app-identifier }} --adhoc true
         
       - id: build
         name: Build App for ${{ inputs.platform }}
