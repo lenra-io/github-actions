@@ -271,7 +271,6 @@ jobs:
             echo "Build command: flutter build $target $BUILD_ARGS $IOS_BUILD_ARGS"
             flutter build $target $BUILD_ARGS $IOS_BUILD_ARGS
           done
-          ls -la build/ios/ipa/
 
       - name: Upload build artifacts
         if: inputs.artifact-name != '' && inputs.artifact-path != ''
