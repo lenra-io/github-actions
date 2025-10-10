@@ -51,10 +51,6 @@ on:
         type: string
         description: 'Glob pattern for build artifacts'
         required: false
-      ios-app-identifier:
-        type: string
-        description: 'iOS app identifier/bundle ID for provisioning profile'
-        required: false
     secrets:
       UPLOAD_KEY_STORE:
         description: 'Keystore file content for Android signing'
@@ -68,17 +64,11 @@ on:
       UPLOAD_STORE_PASSWORD:
         description: 'Password for the Android keystore'
         required: false
-      IOS_KEYCHAIN:
-        description: 'iOS base64 value that contains the certificates'
-        required: false
-      IOS_KEYCHAIN_NAME:
-        description: 'iOS Keychain''s name'
-        required: false
-      IOS_KEYCHAIN_PASSWORD:
-        description: 'iOS Keychain''s password'
-        required: false
       IOS_SIGN_CERT:
         description: 'iOS fastlane signing certificate in base64'
+        required: false
+      IOS_PROVISIONING_PROFILE:
+        description: 'iOS fastlane provisioning profile in base64'
         required: false
     outputs:
       artifact-id:
@@ -184,27 +174,16 @@ jobs:
       - name: Install iOS provisioning profiles
         if: inputs.platform == 'ios'
         env:
-          KEYCHAIN: ${{ secrets.KEYCHAIN }}
-          KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
+          FASTLANE_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
         run: |
-          certificate_dir="$(mktemp -d)/"
-          
-          # Decode and import
-          echo "$KEYCHAIN" | base64 -d > ${certificate_dir}/keychain.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
-          security import ${certificate_dir}/keychain.p12 -k "$KEYCHAIN_NAME" -P "$KEYCHAIN_PASSWORD" -T /usr/bin/codesign
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
-          security default-keychain -s "$KEYCHAIN_NAME"
-          
           # Import certificate
-          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/app.crt
-          fastlane run import_certificate certificate_path:"${certificate_dir}/app.crt" keychain_name:"$KEYCHAIN_NAME" keychain_password:"$KEYCHAIN_PASSWORD"
+          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.crt
+          fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt"
 
-          # Download provisioning profile
-          fastlane sigh --app_identifier ${{ inputs.ios-app-identifier }} --adhoc true
+          # Import provisioning profile from base64
+          echo "${FASTLANE_PROVISIONING_PROFILE}" | base64 -d > "${certificate_dir}/profile.mobileprovision"
+          fastlane run install_provisioning_profile path:"${certificate_dir}/profile.mobileprovision"
 
       - id: build
         name: Build App for ${{ inputs.platform }}
