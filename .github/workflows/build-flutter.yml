@@ -178,9 +178,20 @@ jobs:
           FASTLANE_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
         run: |
           certificate_dir="$(mktemp -d)"
+
+          # Create a temporary keychain for CI
+          KEYCHAIN_NAME="fastlane_tmp_keychain"
+          KEYCHAIN_PASSWORD="temp_password_$(date +%s)"
+          
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed s/\"//g)
+          security default-keychain -s "$KEYCHAIN_NAME"
+
           # Import certificate
           echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.crt
-          fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt"
+          fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt" keychain_name:"$KEYCHAIN_NAME" keychain_password:"$KEYCHAIN_PASSWORD"
 
           # Import provisioning profile from base64
           echo "${FASTLANE_PROVISIONING_PROFILE}" | base64 -d > "${certificate_dir}/profile.mobileprovision"
