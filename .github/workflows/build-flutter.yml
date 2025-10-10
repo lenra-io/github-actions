@@ -177,7 +177,8 @@ jobs:
           enableCrossOsArchive: true
           save-always: true
           
-      - name: Install iOS provisioning profiles
+      - id: ios-provisioning
+        name: Install iOS provisioning profiles
         if: inputs.platform == 'ios'
         env:
           IOS_APP_IDENTIFIER: ${{ inputs.ios-app-identifier }}
@@ -219,6 +220,10 @@ jobs:
             METHOD="app-store"
             if [[ ${BUILD_ARGS} == *'--export-method'* ]]; then
               METHOD=$(echo $BUILD_ARGS | grep -oP '(?<=--export-method=)[^ ]+')
+              BUILD_ARGS=$(echo "$BUILD_ARGS" | sed -E 's/--export-method(=| +)[^[:space:]]+//g')
+              echo "build-args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
+            else
+
             fi
             cat > ios/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -248,7 +253,8 @@ jobs:
           echo "Targets: ${{ inputs.targets }}"
 
           # Parse flutter build args
-          BUILD_ARGS="${{ inputs.flutter-build-args }}"
+          IOS_PP_BUILD_ARGS="${{ steps.ios-provisioning.outputs.build-args }}"
+          BUILD_ARGS="${IOS_PP_BUILD_ARGS:-"${{ inputs.flutter-build-args }}"}"
           
           # Parse targets
           IFS=',' read -ra TARGET_LIST <<< "${{ inputs.targets }}"
