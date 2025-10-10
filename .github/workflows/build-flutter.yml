@@ -268,10 +268,8 @@ jobs:
           flutter pub get
 
           if [ '${{ inputs.platform }}' = 'ios' ]; then
-            if [ ! -f ios/ExportOptions.plist ]; then
-              if [[ ${BUILD_ARGS} != *'--export-options-plist'* ]]; then
-                IOS_BUILD_ARGS="--export-options-plist=ios/ExportOptions.plist"
-              fi
+            if [[ ${BUILD_ARGS} != *'--export-options-plist'* ]]; then
+              IOS_BUILD_ARGS="--export-options-plist=ios/ExportOptions.plist"
             fi
           fi
 
