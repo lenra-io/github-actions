@@ -190,25 +190,22 @@ jobs:
       - name: Install iOS provisioning profiles
         if: inputs.platform == 'ios'
         env:
-          FASTLANE_USER: ${{ secrets.IOS_USER }}
-          FASTLANE_PASSWORD: ${{ secrets.IOS_PASSWORD }}
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.IOS_APP_PASSWORD }}
-          FASTLANE_SESSION: ${{ secrets.IOS_SESSION }}
-          FASTLANE_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          KEYCHAIN: ${{ secrets.KEYCHAIN }}
+          KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
         run: |
-          # Create a temporary keychain for CI
-          KEYCHAIN_NAME="fastlane_tmp_keychain"
-          KEYCHAIN_PASSWORD="temp_password_$(date +%s)"
+          certificate_dir="$(mktemp -d)/"
           
+          # Decode and import
+          echo "$KEYCHAIN" | base64 -d > ${certificate_dir}/keychain.p12
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security import ${certificate_dir}/keychain.p12 -k "$KEYCHAIN_NAME" -P "$KEYCHAIN_PASSWORD" -T /usr/bin/codesign
           security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
-          security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | sed s/\"//g)
           security default-keychain -s "$KEYCHAIN_NAME"
-    
+          
           # Import certificate
-          certificate_dir="$(mktemp -d)/"
           echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/app.crt
           fastlane run import_certificate certificate_path:"${certificate_dir}/app.crt" keychain_name:"$KEYCHAIN_NAME" keychain_password:"$KEYCHAIN_PASSWORD"
 
