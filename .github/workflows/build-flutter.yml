@@ -54,6 +54,11 @@ on:
       ios-app-identifier:
         type: string
         description: 'iOS app identifier (e.g. com.example.app)'
+      ios-export-method:
+        type: string
+        description: 'iOS export method (app-store, ad-hoc, enterprise, development)'
+        required: false
+        default: 'app-store'
     secrets:
       UPLOAD_KEY_STORE:
         description: 'Keystore file content for Android signing'
@@ -177,8 +182,7 @@ jobs:
           enableCrossOsArchive: true
           save-always: true
           
-      - id: ios-provisioning
-        name: Install iOS provisioning profiles
+      - name: Install iOS provisioning profiles
         if: inputs.platform == 'ios'
         env:
           IOS_APP_IDENTIFIER: ${{ inputs.ios-app-identifier }}
@@ -216,21 +220,14 @@ jobs:
           
           fastlane run install_provisioning_profile path:"${certificate_dir}/profile.mobileprovision"
           if [ ! -f ios/ExportOptions.plist ]; then
-            # If there is --export-method in BUILD_ARGS, then set EXPORT_METHOD accordingly
-            METHOD="app-store"
-            if [[ ${BUILD_ARGS} == *'--export-method'* ]]; then
-              METHOD=$(echo $BUILD_ARGS | grep -oP '(?<=--export-method=)[^ ]+')
-              BUILD_ARGS=$(echo "$BUILD_ARGS" | sed -E 's/--export-method(=| +)[^[:space:]]+//g')
-              echo "build-args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
-            fi
-            
+
             cat > ios/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>${METHOD}</string>
+            <string>${{ inputs.ios-export-method }}</string>
             <key>provisioningProfiles</key>
             <dict>
               <key>${IOS_APP_IDENTIFIER}</key>
