@@ -177,6 +177,7 @@ jobs:
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
           FASTLANE_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
         run: |
+          certificate_dir="$(mktemp -d)"
           # Import certificate
           echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.crt
           fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt"
