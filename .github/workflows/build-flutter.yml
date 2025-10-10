@@ -65,10 +65,13 @@ on:
         description: 'Password for the Android keystore'
         required: false
       IOS_SIGN_CERT:
-        description: 'iOS fastlane signing certificate in base64'
+        description: 'iOS signing certificate (P12) in base64'
+        required: false
+      IOS_SIGN_CERT_PASSWORD:
+        description: 'Password for the P12 certificate'
         required: false
       IOS_PROVISIONING_PROFILE:
-        description: 'iOS fastlane provisioning profile in base64'
+        description: 'iOS provisioning profile in base64'
         required: false
     outputs:
       artifact-id:
@@ -175,6 +178,7 @@ jobs:
         if: inputs.platform == 'ios'
         env:
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
+          FASTLANE_SIGN_CERT_PASSWORD: ${{ secrets.IOS_SIGN_CERT_PASSWORD }}
           FASTLANE_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
         run: |
           certificate_dir="$(mktemp -d)"
@@ -190,8 +194,12 @@ jobs:
           security default-keychain -s "$KEYCHAIN_NAME"
 
           # Import certificate
-          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.crt
-          fastlane run import_certificate certificate_path:"${certificate_dir}/rempi.crt" keychain_name:"$KEYCHAIN_NAME" keychain_password:"$KEYCHAIN_PASSWORD"
+          echo "${FASTLANE_SIGN_CERT}" | base64 -d > ${certificate_dir}/rempi.p12
+          fastlane run import_certificate \
+            certificate_path:"${certificate_dir}/rempi.p12" \
+            certificate_password:"$FASTLANE_SIGN_CERT_PASSWORD" \
+            keychain_name:"$KEYCHAIN_NAME" \
+            keychain_password:"$KEYCHAIN_PASSWORD"
 
           # Import provisioning profile from base64
           echo "${FASTLANE_PROVISIONING_PROFILE}" | base64 -d > "${certificate_dir}/profile.mobileprovision"
