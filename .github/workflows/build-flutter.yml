@@ -215,13 +215,18 @@ jobs:
           
           fastlane run install_provisioning_profile path:"${certificate_dir}/profile.mobileprovision"
           if [ ! -f ios/ExportOptions.plist ]; then
+            # If there is --export-method in BUILD_ARGS, then set EXPORT_METHOD accordingly
+            METHOD="app-store"
+            if [[ ${BUILD_ARGS} == *'--export-method'* ]]; then
+              METHOD=$(echo $BUILD_ARGS | grep -oP '(?<=--export-method=)[^ ]+')
+            fi
             cat > ios/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>ad-hoc</string>
+            <string>${METHOD}</string>
             <key>provisioningProfiles</key>
             <dict>
               <key>${IOS_APP_IDENTIFIER}</key>
@@ -235,6 +240,8 @@ jobs:
       - id: build
         name: Build App for ${{ inputs.platform }}
         run: |
+          set -e
+
           echo "Building for platform: ${{ inputs.platform }}"
           echo "Version: ${{ inputs.version }}"
           echo "Build ID: ${{ inputs.build }}"
