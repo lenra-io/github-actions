@@ -214,8 +214,8 @@ jobs:
           cp "${certificate_dir}/profile.mobileprovision" "${pp_dir}/${PP_UUID}.mobileprovision"
           
           fastlane run install_provisioning_profile path:"${certificate_dir}/profile.mobileprovision"
-          if [ ! -f ${{ inputs.working-directory }}/ios/ExportOptions.plist ]; then
-            cat > ${{ inputs.working-directory }}/ios/ExportOptions.plist <<EOF
+          if [ ! -f ios/ExportOptions.plist ]; then
+            cat > ios/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
