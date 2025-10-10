@@ -74,6 +74,9 @@ on:
       IOS_PASSWORD:
         description: 'iOS fastlane auth password'
         required: false
+      IOS_APP_PASSWORD:
+        description: 'iOS fastlane auth with app specific password'
+        required: false
       IOS_SESSION:
         description: 'iOS fastlane auth session'
         required: false
@@ -189,6 +192,7 @@ jobs:
         env:
           FASTLANE_USER: ${{ secrets.IOS_USER }}
           FASTLANE_PASSWORD: ${{ secrets.IOS_PASSWORD }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.IOS_APP_PASSWORD }}
           FASTLANE_SESSION: ${{ secrets.IOS_SESSION }}
           FASTLANE_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           FASTLANE_SIGN_CERT: ${{ secrets.IOS_SIGN_CERT }}
