@@ -94,7 +94,13 @@ jobs:
             fi
             service_account_json=$(mktemp)
             echo "$SERVICE_ACCOUNT_JSON" > ${service_account_json}
-            release_cmd="${release_cmd} api_key_path ${service_account_json} --app_identifier ${{ inputs.package-name }} --ipa ${artifact_path}"
+
+            app_identifier=''
+            if [ -n "${{ inputs.package-name }}" ]; then
+              app_identifier="app_identifier:"${{ inputs.package-name }}
+            fi
+
+            release_cmd="${release_cmd} api_key_path:${service_account_json} ipa:${artifact_path} ${app_identifier}"
             if [ "${{ inputs.release }}" = "true" ]; then
               release_cmd="${release_cmd} --automatic_release"
             fi
