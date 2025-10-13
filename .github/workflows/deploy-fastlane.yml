@@ -69,9 +69,6 @@ jobs:
         env:
           SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         run: |
-          echo "Artifacts content:"
-          tree ./artifacts
-          
           # Get absolute path to artifact
           artifact_path="$(realpath ./artifacts/${{ inputs.with-artifact-path }})"
           file_type="$(echo "${artifact_path##*.}")"
