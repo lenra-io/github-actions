@@ -167,21 +167,60 @@ jobs:
           chmod +x appimagetool
           mv appimagetool /usr/local/bin/
     
+      - name: Cache Gradle
+        uses: actions/cache@v4.3.0
+        if: inputs.platform == 'android'
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/daemon
+            ${{ inputs.working-directory }}/android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle*', '**/gradle.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Setup Gradle
+        if: inputs.platform == 'android'
+        run: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
+
       - name: Install Dependencies (macos)
         shell: sh
         if: contains(inputs.targets, 'dmg')
         run: |
           npm install -g appdmg
           
-      - name: Cache
+      - name: Cache Android
         uses: actions/cache@v4.2.3
         if: inputs.platform == 'android'
         with:
-          path: /usr/local/lib/android/sdk
-          key: cache-android-sdk
+          path: |
+            /usr/local/lib/android/sdk
+            ~/.android
+            ${{ inputs.working-directory }}/android/build
+            ${{ inputs.working-directory }}/build
+          key: android-sdk-${{ runner.os }}-${{ hashFiles('**/pubspec.lock', '**/android/build.gradle', '**/android/app/build.gradle') }}
+          restore-keys: |
+            android-sdk-${{ runner.os }}-
           enableCrossOsArchive: true
           save-always: true
           
+      - name: Cache Flutter build
+        uses: actions/cache@v4.2.3
+        with:
+          path: |
+            ${{ inputs.working-directory }}/build
+            ~/.pub-cache
+          key: flutter-build-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            flutter-build-${{ runner.os }}-
+
       - name: Install iOS provisioning profiles
         if: inputs.platform == 'ios'
         env:
