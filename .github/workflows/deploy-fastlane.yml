@@ -54,7 +54,7 @@ on:
         required: false
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.store == 'app_store' || inputs.store == 'testflight' && 'macos-latest' || 'ubuntu-latest' }}
     steps:
       - name: Download Artifacts
         uses: shiipou/download-artifact@main
