@@ -120,7 +120,7 @@ jobs:
               if [ "${{ inputs.release }}" = "true" ]; then
                 pilot_cmd="${pilot_cmd} --distribute_external --groups ${{ inputs.testflight-groups }}"
               fi
-              $release_cmd="$pilot_cmd"
+              release_cmd="$pilot_cmd"
             else
               # For App Store, use fastlane run
               app_identifier=''
