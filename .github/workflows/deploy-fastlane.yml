@@ -43,6 +43,11 @@ on:
         description: 'Release the version now'
         required: false
         default: false
+      testflight-groups:
+        type: string
+        description: 'Comma separated list of TestFlight groups to distribute the build to (only used if store is testflight and release is true)'
+        required: false
+        default: ''
     secrets:
       SERVICE_ACCOUNT_JSON:
         description: 'Service account JSON for deployment'
@@ -67,7 +72,7 @@ jobs:
           artifact_path="$(realpath ./artifacts/${{ inputs.with-artifact-path }})"
           file_type="$(echo "${artifact_path##*.}")"
           echo "Deploying to ${{ inputs.store }}..."
-          release_cmd="fastlane upload_to_${{ inputs.store }}"
+          release_cmd="fastlane run upload_to_${{ inputs.store }}"
 
           if [ "${{ inputs.store }}" = "play_store" ] || [ "${{ inputs.store }}" = "play_store_internal_app_sharing" ]; then
             accept_files=("aab" "apk")
@@ -78,12 +83,12 @@ jobs:
             service_account_json=$(mktemp)
             echo "$SERVICE_ACCOUNT_JSON" > ${service_account_json}
             
-            release_cmd="${release_cmd} --json_key ${service_account_json} --package_name ${{ inputs.package-name }} --${file_type} ${artifact_path}"
+            release_cmd="${release_cmd} json_key:${service_account_json} package_name:${{ inputs.package-name }} ${file_type}:${artifact_path}"
             if [ -n "${{ inputs.playstore-track }}" ]; then
-              release_cmd="${release_cmd} --track ${{ inputs.playstore-track }}"
+              release_cmd="${release_cmd} track:${{ inputs.playstore-track }}"
             fi
             if [ "${{ inputs.release }}" = "false" ]; then
-              release_cmd="${release_cmd} --release_status draft"
+              release_cmd="${release_cmd} release_status:draft"
             fi
 
           elif [ "${{ inputs.store }}" = "appstore" ] || [ "${{ inputs.store }}" = "testflight" ]; then
@@ -97,12 +102,18 @@ jobs:
 
             app_identifier=''
             if [ -n "${{ inputs.package-name }}" ]; then
-              app_identifier="app_identifier:"${{ inputs.package-name }}
+              app_identifier="app_identifier:${{ inputs.package-name }}"
             fi
 
             release_cmd="${release_cmd} api_key_path:${service_account_json} ipa:${artifact_path} ${app_identifier}"
-            if [ "${{ inputs.release }}" = "true" ]; then
-              release_cmd="${release_cmd} --automatic_release"
+            if [ "${{ inputs.store }}" = "appstore" ]; then
+              if [ "${{ inputs.release }}" = "true" ]; then
+                release_cmd="${release_cmd} --automatic_release"
+              fi
+            elif [ "${{ inputs.store }}" = "testflight" ]; then
+              if [ "${{ inputs.release }}" = "true" ]; then
+                release_cmd="${release_cmd} distribute_external:true groups:${{ inputs.testflight-groups }}"
+              fi
             fi
           fi
 
