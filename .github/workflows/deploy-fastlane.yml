@@ -110,26 +110,19 @@ jobs:
             service_account_json=$(mktemp)
             echo "$SERVICE_ACCOUNT_JSON" > ${service_account_json}
 
-            # Use pilot directly instead of fastlane run for TestFlight
-            if [ "${{ inputs.store }}" = "testflight" ]; then
-              echo "Using pilot command directly for TestFlight upload"
-              pilot_cmd="fastlane pilot upload --api_key_path ${service_account_json} --ipa ${artifact_path}"
-              if [ -n "${{ inputs.package-name }}" ]; then
-                pilot_cmd="${pilot_cmd} --app_identifier ${{ inputs.package-name }}"
-              fi
-              if [ "${{ inputs.release }}" = "true" ]; then
-                pilot_cmd="${pilot_cmd} --distribute_external --groups ${{ inputs.testflight-groups }}"
-              fi
-              release_cmd="$pilot_cmd"
-            else
-              # For App Store, use fastlane run
-              app_identifier=''
-              if [ -n "${{ inputs.package-name }}" ]; then
-                app_identifier="app_identifier:${{ inputs.package-name }}"
-              fi
-              release_cmd="${release_cmd} api_key_path:${service_account_json} ipa:${artifact_path} ${app_identifier}"
+            app_identifier=''
+            if [ -n "${{ inputs.package-name }}" ]; then
+              app_identifier="app_identifier:${{ inputs.package-name }}"
+            fi
+
+            release_cmd="${release_cmd} api_key_path:${service_account_json} ipa:${artifact_path} ${app_identifier}"
+            if [ "${{ inputs.store }}" = "appstore" ]; then
               if [ "${{ inputs.release }}" = "true" ]; then
                 release_cmd="${release_cmd} --automatic_release"
+              fi
+            elif [ "${{ inputs.store }}" = "testflight" ]; then
+              if [ "${{ inputs.release }}" = "true" ]; then
+                release_cmd="${release_cmd} distribute_external:true groups:${{ inputs.testflight-groups }}"
               fi
             fi
           fi
