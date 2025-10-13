@@ -87,9 +87,9 @@ jobs:
             fi
 
           elif [ "${{ inputs.store }}" = "appstore" ] || [ "${{ inputs.store }}" = "testflight" ]; then
-            accept_files=("ipa", "pkg")
+            accept_files=("ipa" "pkg")
             if [[ ! " ${accept_files[@]} " =~ " ${file_type} " ]]; then
-            >&2 echo "Invalid artifact, ${{ inputs.store }} only accept one of ${accept_files[*]}, got ${file_type} (${artifact_path})"
+              >&2 echo "Invalid artifact, ${{ inputs.store }} only accept one of ${accept_files[*]}, got ${file_type} (${artifact_path})"
               exit 1
             fi
             service_account_json=$(mktemp)
