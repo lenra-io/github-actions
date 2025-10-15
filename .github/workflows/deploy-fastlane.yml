@@ -120,6 +120,8 @@ jobs:
             elif [ "${{ inputs.store }}" = "testflight" ]; then
               if [ "${{ inputs.release }}" = "true" ]; then
                 release_cmd="${release_cmd} distribute_external:true groups:${{ inputs.testflight-groups }}"
+              else
+                release_cmd="${release_cmd} skip_waiting_for_build_processing:true"
               fi
             fi
           fi
