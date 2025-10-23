@@ -289,7 +289,7 @@ jobs:
 
           # Parse flutter build args
           IOS_PP_BUILD_ARGS="${{ steps.ios-provisioning.outputs.build-args }}"
-          BUILD_ARGS="${IOS_PP_BUILD_ARGS:-"${{ inputs.flutter-build-args }}"}"
+          IFS=',' read -ra BUILD_ARGS <<< "${IOS_PP_BUILD_ARGS:-"${{ inputs.flutter-build-args }}"}"
           
           # Parse targets
           IFS=',' read -ra TARGET_LIST <<< "${{ inputs.targets }}"
