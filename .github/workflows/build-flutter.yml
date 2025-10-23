@@ -30,7 +30,7 @@ on:
         type: string
         description: 'Comma separated list of flutter build extra args (e.g., release,verbose,obfuscate,split-debug-info=.debug,split-per-abi)'
         required: false
-        default: 'release'
+        default: '--release'
       platform:
         type: string
         description: 'Target platform'
