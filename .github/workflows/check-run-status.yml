@@ -72,6 +72,7 @@ jobs:
         with:
           app-id: ${{ secrets.github-app-id }}
           private-key: ${{ secrets.github-app-key }}
+          permission-statuses: write
       - name: Set PR custom status
         id: check-run
         uses: actions/github-script@v7
