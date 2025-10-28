@@ -208,8 +208,6 @@ jobs:
           key: android-sdk-${{ runner.os }}-${{ hashFiles('**/pubspec.lock', '**/android/build.gradle', '**/android/app/build.gradle') }}
           restore-keys: |
             android-sdk-${{ runner.os }}-
-          enableCrossOsArchive: true
-          save-always: true
           
       - name: Cache Flutter build
         uses: actions/cache@v4.2.3
