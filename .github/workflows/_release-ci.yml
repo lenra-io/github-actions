@@ -12,9 +12,15 @@ permissions:
   contents: write
 
 jobs:
+  get-version:
+    uses: lenra-io/github-actions/.github/workflows/get-version.yml@main
+      
   release:
     needs: get-version
-    if: ${{ needs.get-version.outputs.will-release }}
-    uses: lenra-io/github-actions/.github/workflows/release.yml@main
+    if: ${{ needs.get-version.outputs.version != '' }}
+    uses: lenra-io/github-actions/.github/workflows/upsert-release.yml@main
     with:
-      prerelease-branches: rc,beta,alpha
+      version: ${{ needs.get-version.outputs.version }}
+      changelog: ${{ needs.get-version.outputs.changelog }}
+      prerelease: ${{ needs.get-version.outputs.channel != '' }}
+  
