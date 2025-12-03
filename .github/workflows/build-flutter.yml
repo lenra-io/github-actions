@@ -139,18 +139,10 @@ jobs:
               throw new Error(`Failed to read pubspec.yaml: ${err.message}`);
             }
     
-            // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0.1`
-            // const version = '${{ inputs.version }}'.replace(/-.*$/, '')
-            const version = '${{ inputs.version }}'
+            // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0`
+            const version = '${{ inputs.version }}'.replace(/-.*$/, '')
     
-            const build = '${{ inputs.build }}'
-            let version_string = ''
-            if (build.length > 0) {
-              version_string = `${version}+${build}`
-            } else {
-              version_string = `${version}`
-            }
-            const newPubspec = pubspec.replace(/version: .*/, `version: ${version_string}`)
+            const newPubspec = pubspec.replace(/version: .*/, `version: ${version}`)
             try {
               fs.writeFileSync(pubspecPath, newPubspec);
             } catch (err) {
