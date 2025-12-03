@@ -36,6 +36,11 @@ on:
         type: string
         description: 'The profile of the composefile to load'
         required: false
+      gradle-job:
+        type: string
+        description: 'The gradle job to run to execute tests'
+        required: false
+        default: 'test'
         
     outputs:
       artifact-id:
@@ -71,7 +76,7 @@ jobs:
           docker compose -f ${{ inputs.compose-file }}  --profile ${{ inputs.compose-profile }} up -d
           
       - name: Build with Gradle
-        run: gradle test
+        run: gradle ${{ inputs.gradle-job }}
 
       - name: Upload build artifacts
         if: inputs.artifact-name != '' && inputs.artifact-path != ''
