@@ -78,7 +78,8 @@ jobs:
       - name: Build with Gradle
         run: gradle ${{ inputs.gradle-job }}
 
-      - name: Upload build artifacts
+      - id: upload-artifact
+        name: Upload build artifacts
         if: inputs.artifact-name != '' && inputs.artifact-path != ''
         uses: actions/upload-artifact@v4
         with:
