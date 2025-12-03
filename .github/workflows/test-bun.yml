@@ -58,7 +58,7 @@ jobs:
       - name: Install Bun dependencies
         run: bun install
 
-      - name: Build with Bun
+      - name: Run tests with coverage
         run: bun test --coverage --coverage-reporter=lcov --coverage-dir=./coverage
         
       - id: upload-artifact
