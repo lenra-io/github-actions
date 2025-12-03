@@ -11,9 +11,18 @@ on:
         default: '.'
       bun-version:
         type: string
-        description: 'Version of Java to use'
+        description: 'Version of Bun to use'
         required: false
         default: 'latest'
+      artifact-name:
+        type: string
+        description: 'Give artifact name for coverage report'
+        required: false
+      artifact-path:
+        type: string
+        description: 'Coverage report path to upload as artifact'
+        required: false
+        default: 'coverage/lcov.info'
     outputs:
       artifact-id:
         description: 'The ID of the uploaded artifact'
@@ -49,5 +58,13 @@ jobs:
       - name: Install Bun dependencies
         run: bun install
 
-      - name: Build with Bun
-        run: bun test
+      - name: Run tests with coverage
+        run: bun test --coverage --coverage-reporter=lcov --coverage-dir=./coverage
+        
+      - id: upload-artifact
+        name: Upload artifact
+        if: inputs.artifact-name != '' && inputs.artifact-path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.working-directory }}/${{ inputs.artifact-path }}
