@@ -11,7 +11,7 @@ on:
         default: '.'
       bun-version:
         type: string
-        description: 'Version of Java to use'
+        description: 'Version of Bun to use'
         required: false
         default: 'latest'
       artifact-name:
