@@ -89,6 +89,19 @@ jobs:
               echo "${BASH_REMATCH[1]}-percentage=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
             fi
           done < <(lcov --summary coverage/${{ inputs.with-artifact-path }})
+      - name: Write coverage summary
+        run: |
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Covered | Total | Percentage |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|---------|-------|------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lines | ${{ steps.coverage.outputs.lines-covered }} | ${{ steps.coverage.outputs.lines-total }} | ${{ steps.coverage.outputs.lines-percentage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functions | ${{ steps.coverage.outputs.functions-covered }} | ${{ steps.coverage.outputs.functions-total }} | ${{ steps.coverage.outputs.functions-percentage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branches | ${{ steps.coverage.outputs.branches-covered }} | ${{ steps.coverage.outputs.branches-total }} | ${{ steps.coverage.outputs.branches-percentage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ -n "${{ inputs.min-lines-coverage }}" ]]; then
+            echo "**Minimum required line coverage:** ${{ inputs.min-lines-coverage }}%" >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Check coverage report data
         if: inputs.min-lines-coverage != ''
         run: |
