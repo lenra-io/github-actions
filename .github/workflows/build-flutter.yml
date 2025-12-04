@@ -61,7 +61,7 @@ on:
         default: 'app-store'
     secrets:
       UPLOAD_KEY_STORE:
-        description: 'Keystore file content for Android signing'
+        description: 'Keystore fi--build-numberle content for Android signing'
         required: false
       UPLOAD_KEY_NAME:
         description: 'Alias name for the Android key'
@@ -271,7 +271,9 @@ jobs:
         name: Build App for ${{ inputs.platform }}
         run: |
           set -e
-
+          version="${{ inputs.version }}"
+          build="${{ inputs.build }}"
+          
           echo "Building for platform: ${{ inputs.platform }}"
           echo "Version: ${{ inputs.version }}"
           echo "Build ID: ${{ inputs.build }}"
@@ -286,10 +288,12 @@ jobs:
           
           # Get dependencies
           flutter pub get
-
+          
+          BUILD_ARGS=("--build-number=${build}" "--build-name=${version%%-*}")
+          
           if [ '${{ inputs.platform }}' = 'ios' ]; then
             if [[ ${BUILD_ARGS} != *'--export-options-plist'* ]]; then
-              IOS_BUILD_ARGS="--export-options-plist=ios/ExportOptions.plist"
+              IOS_BUILD_ARGS=("--export-options-plist=ios/ExportOptions.plist")
             fi
           fi
 
@@ -297,8 +301,8 @@ jobs:
           for target in "${TARGET_LIST[@]}"; do
             target=$(echo "$target" | xargs) # trim whitespace
             echo "Building target: $target"
-            echo "Build command: flutter build $target $BUILD_ARGS $IOS_BUILD_ARGS"
-            flutter build $target $BUILD_ARGS $IOS_BUILD_ARGS
+            echo "Build command: flutter build $target ${BUILD_ARGS[@]} ${IOS_BUILD_ARGS[@]}"
+            flutter build $target ${BUILD_ARGS[@]} ${IOS_BUILD_ARGS[@]}
           done
 
       - id: upload-artifact
