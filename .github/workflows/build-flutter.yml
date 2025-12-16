@@ -269,6 +269,7 @@ jobs:
 
       - id: build
         name: Build App for ${{ inputs.platform }}
+        shell: bash
         run: |
           set -e
           version="${{ inputs.version }}"
@@ -289,7 +290,7 @@ jobs:
           # Get dependencies
           flutter pub get
           
-          BUILD_ARGS=("--build-number=${build}" "--build-name=${version%%-*}")
+          BUILD_ARGS+=("--build-number=${build}" "--build-name=${version%%-*}")
           
           if [ '${{ inputs.platform }}' = 'ios' ]; then
             if [[ ${BUILD_ARGS} != *'--export-options-plist'* ]]; then
