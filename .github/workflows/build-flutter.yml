@@ -119,35 +119,35 @@ jobs:
           upload-store-password: ${{ secrets.UPLOAD_STORE_PASSWORD }}
           upload-key-password: ${{ secrets.UPLOAD_KEY_PASSWORD }}
 
-      - name: Update version
-        uses: actions/github-script@v7
-        with:
-          debug: true
-          script: |
-            // Update pubspec.yaml inplace
-            const fs = require('fs')
-            const path = require('path')
-            const pubspecPath = path.join('${{ inputs.working-directory}}', 'pubspec.yaml')
-            // edit version and build number
-            if (!fs.existsSync(pubspecPath)) {
-              throw new Error(`pubspec.yaml file not found at ${pubspecPath}`);
-            }
-            let pubspec;
-            try {
-              pubspec = fs.readFileSync(pubspecPath, 'utf8');
-            } catch (err) {
-              throw new Error(`Failed to read pubspec.yaml: ${err.message}`);
-            }
+      # - name: Update version
+      #   uses: actions/github-script@v7
+      #   with:
+      #     debug: true
+      #     script: |
+      #       // Update pubspec.yaml inplace
+      #       const fs = require('fs')
+      #       const path = require('path')
+      #       const pubspecPath = path.join('${{ inputs.working-directory}}', 'pubspec.yaml')
+      #       // edit version and build number
+      #       if (!fs.existsSync(pubspecPath)) {
+      #         throw new Error(`pubspec.yaml file not found at ${pubspecPath}`);
+      #       }
+      #       let pubspec;
+      #       try {
+      #         pubspec = fs.readFileSync(pubspecPath, 'utf8');
+      #       } catch (err) {
+      #         throw new Error(`Failed to read pubspec.yaml: ${err.message}`);
+      #       }
     
-            // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0`
-            const version = '${{ inputs.version }}'.replace(/-.*$/, '')
+      #       // Remove channel from version, if we have `1.0.0-beta.1`, we want `1.0.0`
+      #       const version = '${{ inputs.version }}'.replace(/-.*$/, '')
     
-            const newPubspec = pubspec.replace(/version: .*/, `version: ${version}`)
-            try {
-              fs.writeFileSync(pubspecPath, newPubspec);
-            } catch (err) {
-              throw new Error(`Failed to write to pubspec.yaml: ${err.message}`);
-            }
+      #       const newPubspec = pubspec.replace(/version: .*/, `version: ${version}`)
+      #       try {
+      #         fs.writeFileSync(pubspecPath, newPubspec);
+      #       } catch (err) {
+      #         throw new Error(`Failed to write to pubspec.yaml: ${err.message}`);
+      #       }
 
       - name: Install Dependencies (linux)
         shell: sh
@@ -201,11 +201,10 @@ jobs:
       #     restore-keys: |
       #       android-sdk-${{ runner.os }}-
           
-      - name: Cache Flutter build
+      - name: Cache Flutter pub-cache
         uses: actions/cache@v4.2.3
         with:
           path: |
-            ${{ inputs.working-directory }}/build
             ~/.pub-cache
           key: flutter-build-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
