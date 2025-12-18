@@ -11,7 +11,7 @@ on:
 jobs:
   prepare:
     name: Prepare release
-    uses: actions/upload-artifact@v4
+    uses: actions/upload-artifact@v6
     with:
       artifact-name: 'release'
       artifact-path: 'README.md'
