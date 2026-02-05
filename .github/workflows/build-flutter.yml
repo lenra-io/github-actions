@@ -289,13 +289,14 @@ jobs:
           # Get dependencies
           flutter pub get
           
-          BUILD_ARGS+=("--build-number=${build}" "--build-name=${version%%-*}")
-          
           if [ '${{ inputs.platform }}' = 'ios' ]; then
+            version="${version%%-*}" # Remove any pre-release tags for iOS build name
             if [[ ${BUILD_ARGS} != *'--export-options-plist'* ]]; then
               IOS_BUILD_ARGS=("--export-options-plist=ios/ExportOptions.plist")
             fi
           fi
+          
+          BUILD_ARGS+=("--build-number=${build}" "--build-name=${version}")
 
           # Build for each target
           for target in "${TARGET_LIST[@]}"; do
