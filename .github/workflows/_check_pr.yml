@@ -23,7 +23,7 @@ jobs:
           if [ -n "$IGNORED_FILES" ]; then
             ignore_rules=' | grep -vE "($IGNORED_FILES)"'
           fi
-          files=$(grep -lE "uses: lenra-io/github-actions/*@${branch}" .github/workflows/* ${ignore_rules}")
+          files=$(grep -lE "uses: lenra-io/github-actions/*@${branch}" .github/workflows/* ${ignore_rules})
           if [ -n "$files" ]; then
             echo "The following files contains an action that uses the @${branch} version instead of @main:"
             echo "$files"
