@@ -73,7 +73,7 @@ jobs:
       - name: Run compose-file
         if: inputs.compose-file != ''
         run: |
-          docker compose -f ${{ inputs.compose-file }}  --profile ${{ inputs.compose-profile }} up -d
+          docker compose -f ${{ inputs.compose-file }}  --profile ${{ inputs.compose-profile }} up -d --wait
           
       - name: Build with Gradle
         run: gradle ${{ inputs.gradle-job }}
