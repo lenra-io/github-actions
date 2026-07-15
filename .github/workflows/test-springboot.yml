@@ -74,7 +74,11 @@ jobs:
         if: inputs.compose-file != ''
         run: |
           docker compose -f ${{ inputs.compose-file }}  --profile ${{ inputs.compose-profile }} up -d --wait
-          
+
+      - name: Dump compose-file logs
+        if: inputs.compose-file != '' && failure()
+        run: docker compose -f ${{ inputs.compose-file }} --profile ${{ inputs.compose-profile }} logs
+
       - name: Build with Gradle
         run: gradle ${{ inputs.gradle-job }}
 
