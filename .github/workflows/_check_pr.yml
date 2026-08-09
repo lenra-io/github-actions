@@ -19,11 +19,10 @@ jobs:
           IGNORED_FILES: "${{ vars.ci_ignored_files }}"
         run: |
           branch=$(echo "${{ github.ref_name }}" | sed -e 's/refs\/heads\///g')
-          ignore_rules=''
-          if [ -n "$IGNORED_FILES" ]; then
-            ignore_rules=' | grep -vE "($IGNORED_FILES)"'
+          files=$(grep -lE "uses: lenra-io/github-actions/*@${branch}" .github/workflows/* || true)
+          if [ -n "$IGNORED_FILES" ] && [ -n "$files" ]; then
+            files=$(echo "$files" | grep -vE "($IGNORED_FILES)" || true)
           fi
-          files=$(grep -lE "uses: lenra-io/github-actions/*@${branch}" .github/workflows/* ${ignore_rules}")
           if [ -n "$files" ]; then
             echo "The following files contains an action that uses the @${branch} version instead of @main:"
             echo "$files"
