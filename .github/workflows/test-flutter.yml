@@ -57,6 +57,9 @@ jobs:
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
           cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
 
+      - name: Install dependencies
+        run: flutter pub get
+
       - name: Run tests and generate coverage report
         id: test
         run: |
