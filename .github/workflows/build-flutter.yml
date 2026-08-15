@@ -81,6 +81,14 @@ on:
       IOS_PROVISIONING_PROFILE:
         description: 'iOS provisioning profile in base64'
         required: false
+      DART_DEFINE_FILE:
+        description: 'Content of a --dart-define-from-file file (JSON or .env format, see
+          `flutter build --help`) written to disk at build time and passed via
+          --dart-define-from-file. The "secrets" context can''t be referenced from a calling
+          workflow''s "with:" block (only from "secrets:"), so callers that need secret values
+          baked into dart-defines must pass them here instead of building
+          flutter-build-args/--dart-define=... themselves.'
+        required: false
     outputs:
       artifact-id:
         description: 'The ID of the uploaded artifact'
@@ -269,11 +277,15 @@ jobs:
       - id: build
         name: Build App for ${{ inputs.platform }}
         shell: bash
+        env:
+          # Only settable via secrets: (this step's own env: block, not a caller's with:, so the
+          # secrets context is available here) - see the DART_DEFINE_FILE input description.
+          DART_DEFINE_FILE: ${{ secrets.DART_DEFINE_FILE }}
         run: |
           set -e
           version="${{ inputs.version }}"
           build="${{ inputs.build }}"
-          
+
           echo "Building for platform: ${{ inputs.platform }}"
           echo "Version: ${{ inputs.version }}"
           echo "Build ID: ${{ inputs.build }}"
@@ -282,21 +294,26 @@ jobs:
           # Parse flutter build args
           IOS_PP_BUILD_ARGS="${{ steps.ios-provisioning.outputs.build-args }}"
           IFS=',' read -ra BUILD_ARGS <<< "${IOS_PP_BUILD_ARGS:-"${{ inputs.flutter-build-args }}"}"
-          
+
           # Parse targets
           IFS=',' read -ra TARGET_LIST <<< "${{ inputs.targets }}"
-          
+
           # Get dependencies
           flutter pub get
-          
+
           if [ '${{ inputs.platform }}' = 'ios' ]; then
             version="${version%%-*}" # Remove any pre-release tags for iOS build name
             if [[ ${BUILD_ARGS} != *'--export-options-plist'* ]]; then
               IOS_BUILD_ARGS=("--export-options-plist=ios/ExportOptions.plist")
             fi
           fi
-          
+
           BUILD_ARGS+=("--build-number=${build}" "--build-name=${version}")
+          if [ -n "${DART_DEFINE_FILE}" ]; then
+            dart_define_file="$(mktemp)"
+            printf '%s' "${DART_DEFINE_FILE}" > "${dart_define_file}"
+            BUILD_ARGS+=("--dart-define-from-file=${dart_define_file}")
+          fi
 
           # Build for each target
           for target in "${TARGET_LIST[@]}"; do
