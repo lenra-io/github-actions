@@ -69,8 +69,6 @@ jobs:
       branches-total: ${{ steps.coverage.outputs.branches-total }}
       branches-percentage: ${{ steps.coverage.outputs.branches-percentage }}
     steps:
-      - name: Setup LCOV
-        uses: hrishikesh-kadam/setup-lcov@v1
       - name: Download coverage report
         uses: shiipou/download-artifact@main
         with:
@@ -81,14 +79,25 @@ jobs:
       - name: Parse coverage report
         id: coverage
         run: |
-          regex='^\s*(lines|functions|branches)\.+: ([0-9]+\.?[0-9]*)% \(([0-9]+) of ([0-9]+) \w+\)$'
-          while read -r line; do
-            if [[ $line =~ $regex ]]; then
-              echo "${BASH_REMATCH[1]}-covered=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
-              echo "${BASH_REMATCH[1]}-total=${BASH_REMATCH[4]}" >> $GITHUB_OUTPUT
-              echo "${BASH_REMATCH[1]}-percentage=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
-            fi
-          done < <(lcov --summary coverage/${{ inputs.with-artifact-path }})
+          awk '
+            /^LF:/  { lf  += substr($0, 4) }
+            /^LH:/  { lh  += substr($0, 4) }
+            /^FNF:/ { fnf += substr($0, 5) }
+            /^FNH:/ { fnh += substr($0, 5) }
+            /^BRF:/ { brf += substr($0, 5) }
+            /^BRH:/ { brh += substr($0, 5) }
+            END {
+              printf "lines-covered=%d\n", lh
+              printf "lines-total=%d\n", lf
+              printf "lines-percentage=%.1f\n", (lf > 0 ? lh / lf * 100 : 0)
+              printf "functions-covered=%d\n", fnh
+              printf "functions-total=%d\n", fnf
+              printf "functions-percentage=%.1f\n", (fnf > 0 ? fnh / fnf * 100 : 0)
+              printf "branches-covered=%d\n", brh
+              printf "branches-total=%d\n", brf
+              printf "branches-percentage=%.1f\n", (brf > 0 ? brh / brf * 100 : 0)
+            }
+          ' coverage/${{ inputs.with-artifact-path }} >> $GITHUB_OUTPUT
       - name: Write coverage summary
         run: |
           echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
