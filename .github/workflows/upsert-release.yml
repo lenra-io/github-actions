@@ -87,6 +87,7 @@ jobs:
           echo "Creating release ${{ inputs.version }}..."
           gh release create "v${{ inputs.version }}" \
             --repo ${{ github.repository }} \
+            --target ${{ github.sha }} \
             -t "v${{ inputs.version }}" \
             $prerelease_args \
             -F <(echo "${{ inputs.changelog }}")
