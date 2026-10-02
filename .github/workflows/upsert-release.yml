@@ -68,6 +68,7 @@ jobs:
           set -e
 
       - name: Download artifact
+        if: inputs.with-artifact-name != '' || inputs.with-artifact-ids != ''
         uses: shiipou/download-artifact@main
         with:
           name: ${{ inputs.with-artifact-name }}
